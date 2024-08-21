@@ -190,7 +190,7 @@
 					msgIDs.length = 0;
 
 					//const userId = document.getElementById("getProfileUserId").innerHTML;
-					//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+					const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 
 					firebase.firestore().collection('project').doc('cloth').collection('cloth').get()
 						.then((querySnapshot) => {
@@ -263,7 +263,7 @@
 			messageForm.addEventListener('submit', function(event) {
 				event.preventDefault();
 				//const userId = document.getElementById("getProfileUserId").innerHTML;
-				//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+				const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 				const title = document.getElementById('titleInput').value;
 				const content = document.getElementById('contentInput').value;
 				const date = document.getElementById('dateInput').value;
@@ -372,7 +372,7 @@
 						//const userId = document.getElementById("getProfileUserId").innerHTML;
 						//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 						const journalListDiv = document.getElementById('journalList');
-						let firstLoad = true; // 添加首次加载的标志位
+						//let firstLoad = true; // 添加首次加载的标志位
 						
 						
 						// 查询 Firestore 中的日记数据
@@ -381,11 +381,12 @@
 								journalListDiv.innerHTML = ''; // 清空日记显示区域
 								querySnapshot.forEach((doc) => {
 									const journalData = doc.data(); // 获取日记数据
-									
+									console.log('Document ID:', doc.id);
+    								        console.log('Journal Data:', journalData);
 									
 									
 									// 获取文档ID并提取前33个字符
-									const docIdPrefix = doc.id.substring(0, 33);
+									//const docIdPrefix = doc.id.substring(0, 33);
 									
 									
 									
@@ -479,9 +480,9 @@
 							}
 						});
 						
-						if (firstLoad) {
-							firstLoad = false; // 将首次加载标志位设为 false
-						}
+						//if (firstLoad) {
+							//firstLoad = false; // 将首次加载标志位设为 false
+						//}
 					}, (error) => {
 						console.error('Error getting journals:', error);
 					});
@@ -630,7 +631,7 @@
 				imageListDiv.innerHTML = '';
 				
 				//const userId = document.getElementById("getProfileUserId").innerHTML;
-				//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+				const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 
 				firebase.firestore().collection('project').doc('cloth').collection('cloth').get()
 					.then((querySnapshot) => {
