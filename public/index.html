@@ -2,15 +2,11 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>留言板</title>
+    <title>我的穿著札記</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
@@ -51,83 +47,84 @@
     
          document.addEventListener("DOMContentLoaded", function(){
 		 
-		 const showAllMessagesButton = document.getElementById("showAllMessagesButton");
-		showAllMessagesButton.addEventListener("click", async function() {
-			await displayMessages();
-		});
-		 
-		 
-	
-
-
+			// 全域變數用於存儲 airTemperature
+			var airTemperature = '';
 			
-			// 留言板消息的查询快照
-			let querySnapshot;
+			var selectedCounty = '';
+			var selectedDistrict = '';
+			
 
-			// 添加实时更新监听器
-			firebase.firestore().collection('project').doc('messages').collection('messages')
-				.onSnapshot((snapshot) => {
-					querySnapshot = snapshot;
-					displayMessages();
-				});
-
-		 
-		 
-			document.getElementById('messages').addEventListener('click', function(event) {
-				// 确保点击的是按钮
-				if (event.target.tagName === 'BUTTON') {
-					// 获取点击按钮所在的留言元素
-					const messageElement = event.target.closest('.message');
-					if (messageElement) {
-						const messageId = messageElement.getAttribute('data-id');
-						if (event.target.textContent === '修改') {
-						
-							const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 假设用户ID为固定值
-							const titleElement = messageElement.querySelector('h4');
-							const titleText = titleElement.textContent;
-							const colonIndex = titleText.indexOf(':');
-							if (colonIndex !== -1) {
-								const replyNumber = titleText.substring(colonIndex + 1).trim();
-								editMessage(userId, replyNumber);
-								
-							};
-
-						} else if (event.target.textContent === '刪除') {
-						//const userId = document.getElementById("getProfileUserId").innerHTML;
-							const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 假设用户ID为固定值
-							const titleElement = messageElement.querySelector('h4');
-							const titleText = titleElement.textContent;
-							const colonIndex = titleText.indexOf(':');
-							if (colonIndex !== -1) {
-								const replyNumber = titleText.substring(colonIndex + 1).trim();
-								deleteMessage(userId, replyNumber);
-							}
+			// 在點擊"選擇地區"按鈕後顯示縣市和地區下拉選單
+			document.getElementById("showSelectBtn").addEventListener("click", function() {
+				var countySelect = document.getElementById("countySelect");			
+				countySelect.style.display = "block"; // 顯示縣市下拉選單
+				
+			});
+			
+			
+			fetch('https://opendata.cwa.gov.tw/fileapi/v1/opendataapi/O-A0001-001?Authorization=CWA-9B0C0FCC-BA27-4C3C-88B6-18BC9E8672FD&downloadType=WEB&format=JSON')
+				.then(response => response.json())
+				.then(data => {
+					// 確保資料不是空的
+					if (data && data.cwaopendata && data.cwaopendata.dataset && data.cwaopendata.dataset.Station) {
+						// 遍歷資料，動態生成縣市選項
+						data.cwaopendata.dataset.Station.forEach(station => {
+							var option = document.createElement('option');
+							option.text = `${station.GeoInfo.CountyName} - ${station.GeoInfo.TownName}`;
+							option.value = `${station.GeoInfo.CountyName}-${station.GeoInfo.TownName}`;
 							
-						}
-						
+							// 檢查是否已存在相同值的選項
+							var existingOptions = document.querySelectorAll('#countySelect option');
+							var isDuplicate = Array.from(existingOptions).some(existingOption => existingOption.value === option.value);
+							
+							// 如果不存在重複的選項，則添加新的選項
+							if (!isDuplicate) {
+								document.getElementById("countySelect").appendChild(option);
+							}
+						});
+					} else {
+						console.error('No data found in response:', data);
 					}
-					
-					 // 获取点击按钮所在的评论元素
-					const commentElement = event.target.closest('.comment');
-					if (commentElement) {
-						const commentId = commentElement.getAttribute('data-comment-id');
-						if (event.target.textContent === '修改評論') {
-							editComment(commentId);
-						} else if (event.target.textContent === '删除評論') {
-							deleteComment(commentId);
+				})
+				.catch(error => console.error('Error fetching data:', error));
+
+			// 當選擇縣市-地區後顯示AirTemperature
+			document.getElementById("countySelect").addEventListener("change", function() {
+				selectedCounty = this.value.split("-")[0]; // 獲取所選擇的縣市
+				selectedDistrict = this.value.split("-")[1]; // 獲取所選擇的地區
+
+				fetch('https://opendata.cwa.gov.tw/fileapi/v1/opendataapi/O-A0001-001?Authorization=CWA-9B0C0FCC-BA27-4C3C-88B6-18BC9E8672FD&downloadType=WEB&format=JSON')
+					.then(response => response.json())
+					.then(data => {
+						// 確保資料不是空的
+						if (data && data.cwaopendata && data.cwaopendata.dataset && data.cwaopendata.dataset.Station) {
+							// 找到所選擇的縣市-地區對應的氣象站資料
+							var selectedStation = data.cwaopendata.dataset.Station.find(station => {
+								return station.GeoInfo.CountyName === selectedCounty && station.GeoInfo.TownName === selectedDistrict;
+							});
+
+							if (selectedStation) {
+								airTemperature = selectedStation.WeatherElement.AirTemperature; // 獲取該氣象站的AirTemperature
+								// 在這裡顯示AirTemperature，例如，將其設置到某個元素的textContent中
+								document.getElementById("airTemperatureDisplay").textContent = "氣溫: " + airTemperature;
+							} else {
+								console.error('No station found for the selected county and district.');
+							}
+						} else {
+							console.error('No data found in response:', data);
 						}
-					}
-				}
+					})
+					.catch(error => console.error('Error fetching data:', error));
 			});
 
-		
-		
-		
+			
+
+			
             // 參考 https://developers.line.biz/en/reference/liff/#initialize-liff-app
             liff
                 .init({
                     // 這裡要改成自己的LIFF URL的後半段 https://liff.line.me/##########-XXXXXXXX
-                    liffId: '2003991300-029M8WXw'    
+                    liffId: '2003321657-ZMxdVXXR'    
                 })
                 .then(() => {
                 
@@ -152,6 +149,9 @@
                     .then(profile => {
                         document.getElementById("getProfileDisplayName").innerHTML = profile.displayName;
                         document.getElementById("getProfileUserId").innerHTML = profile.userId;
+						//const userId = document.getElementById("getProfileUserId").innerHTML;
+						const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+						displayJournals(userId);
                         document.getElementById("getProfilePictureUrl").innerHTML = profile.pictureUrl;
                     })
                     .catch((err) => {
@@ -169,1064 +169,678 @@
                     alert(JSON.stringify(err));
                 });
 				
+				// 获取日记数据并显示
+				displayJournals();
 				
+				    const imageListDiv = document.getElementById('imageList');
+				const photoIDs = []; // 存储匹配条件的 photoID
+				const msgIDs = [];
+				const checkphotoIDs = []; // 存储用户选择的 photoID
+				const checkmsgIDs = [];
+				document.getElementById('selectImageButton').addEventListener('click', function(event) {
+					event.preventDefault(); // 阻止表单的默认提交行为
+					
 
-							 
-				
-			window.onload = function() {
+					imageListDiv.innerHTML = '';
+					photoIDs.length = 0;
+					msgIDs.length = 0;
+
+					//const userId = document.getElementById("getProfileUserId").innerHTML;
+					const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+
+					firebase.firestore().collection('project').doc('cloth').collection('cloth').get()
+						.then((querySnapshot) => {
+							querySnapshot.forEach((doc) => {
+								if (userId === doc.id.substring(0, 33)) {
+									const photoID = doc.data().photoID; // 获取文档中的 photoID 字段
+									photoIDs.push(photoID); // 将 photoID 存储到数组中
+									
+									const msgID = doc.data().msgID; // 获取文档中的 msgID 字段
+									msgIDs.push(msgID); // 将 msgID 存储到数组中
+
+									storage.ref('images/' + photoID + '.jpg').getDownloadURL()
+										.then((url) => {
+											const imgElement = document.createElement('img');
+											imgElement.src = url;
+											imgElement.style.width = '100px'; // 可根据需要设置图片宽度
+
+											// 点击图片时触发打开 modal 的事件
+											//imgElement.addEventListener('click', function() {
+												//openmodal(url);
+											//});
+
+											const selectButton = document.createElement('button');
+											selectButton.textContent = '選擇';
+											selectButton.className = 'small-button'; // 添加自定義的 CSS 類
+											selectButton.addEventListener('click', function() {
+												// 点击按钮时切换按钮的类，以更改按钮样式
+												if (!selectButton.classList.contains('selected-button')) {
+													selectButton.classList.add('selected-button');
+												} else {
+													selectButton.classList.remove('selected-button');
+												}
+											
+												// 點擊「選擇」按鈕時將 photoID 添加到 checkphotoIDs 中
+												if (!checkphotoIDs.includes(photoID)) {
+													checkphotoIDs.push(photoID);
+													checkmsgIDs.push(msgID);
+													console.log('选择了图片：', photoID);
+													alert(`已選擇圖片：${msgID}-${photoID}`)
+												} else {
+													alert(`圖片已選擇：${msgID}-${photoID}`)
+												}
+											});
+
+											const imageWrapperDiv = document.createElement('div');
+											imageWrapperDiv.appendChild(imgElement);
+											imageWrapperDiv.appendChild(selectButton);
+
+											imageListDiv.appendChild(imageWrapperDiv);
+										})
+										.catch((error) => {
+											console.error('获取图片时发生错误：', error);
+										});
+								}
+							});
+
+							console.log('满足条件的 photoID：', photoIDs);
+						})
+						.catch((error) => {
+							console.error('获取图片列表时发生错误：', error);
+						});
+				});
+
 				const messageForm = document.getElementById('messageForm');
-				const tagsInput = document.getElementById('tagsInput'); // 获取标签输入框的 DOM 元素
-				const tagsList = document.getElementById('tagsList'); // 标签选择列表
-				const imageInput = document.getElementById('imageInput'); // 获取上传的图片文件输入框
-				const uploadedImagesContainer = document.getElementById('uploadedImagesContainer'); // 存放上传图片的容器
+				const messagesDiv = document.getElementById('messages');
 
-				let inputCount = 0; // 记录用户的输入次数
+				// 提交表單時觸發
+			<!-- messageForm.addEventListener('submit', function(event) { -->
+				<!-- event.preventDefault(); -->
+				<!-- //const userId = document.getElementById("getProfileUserId").innerHTML; -->
+				<!-- const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; -->
+				<!-- const title = document.getElementById('titleInput').value; -->
+				<!-- const content = document.getElementById('contentInput').value; -->
+				<!-- const date = document.getElementById('dateInput').value; -->
+				
+				<!-- // 获取 Cloud Firestore 数据库引用 -->
+				<!-- const db = firebase.firestore(); -->
 
-				// 初始化时检查输入框的值是否以 # 开头
-				if (tagsInput.value.trim().startsWith('#')) {
-					tagsList.style.display = 'block'; // 显示标签选择列表
-				} else {
-					tagsList.style.display = 'none'; // 隐藏标签选择列表
-				}
+				<!-- // 检查是否有相同的msgID -->
+				<!-- db.collection('project').doc('journal').collection('journal') -->
+					<!-- .where('title', '==', title) -->
+					<!-- .get() -->
+					<!-- .then((querySnapshot) => { -->
+						<!-- if (!querySnapshot.empty) { -->
+							<!-- alert('標題名稱重複！'); -->
+						<!-- } else { -->
+						
+							<!-- // 在按下儲存按鈕時，再將選擇的圖片ID一同儲存到Firebase -->
+							<!-- const data = { -->
+								<!-- line_id: userId, -->
+								<!-- title: title, -->
+								<!-- content: content, -->
+								<!-- date: date, -->
+								<!-- checkphotoIDs: checkphotoIDs, // 添加 checkphotoIDs -->
+								<!-- checkmsgIDs: checkmsgIDs, -->
+								<!-- airTemperature: airTemperature, -->
+								<!-- county: selectedCounty + '_' + selectedDistrict, // 將選擇的縣市和地區用下劃線連接起來 -->
+								<!-- // 其他字段... -->
+							<!-- }; -->
 
-				// 监听输入框的输入事件
-				tagsInput.addEventListener('input', function(event) {
-					const inputValue = event.target.value;
+							<!-- const docName = userId + '_' + title + '_' + date; -->
+							<!-- const docPath = 'project/journal/journal/' + docName; -->
 
-					// 如果输入框中包含一个或多个 #
-					if (inputValue.includes('#')) {
-						// 显示标签选择列表
-						tagsList.style.display = 'block';
-					} else {
-						// 隐藏标签选择列表
-						tagsList.style.display = 'none';
-					}
-				});
+							<!-- db.doc(docPath).set(data) -->
+								<!-- .then(() => { -->
+									<!-- console.log('数据已成功保存到 Firestore 中！'); -->
+									<!-- alert('穿著札記已成功儲存！') -->
+									
+									<!-- const messageDiv = document.createElement('div'); -->
+									<!-- messageDiv.classList.add('message'); -->
 
-				// 监听标签选择列表项的点击事件
-				tagsList.addEventListener('click', function(event) {
-					const selectedTag = event.target.textContent; // 获取用户选择的标签
+									<!-- const titleElement = document.createElement('h2'); -->
+									<!-- titleElement.textContent = title; -->
 
-					// 添加选择的标签到标签输入框的值中
-					if (tagsInput.value) {
-						tagsInput.value +=  selectedTag;
-					} else {
-						// 如果输入框中还没有标签存在，则直接添加新标签
-						tagsInput.value = selectedTag;
-					}
+									<!-- const contentElement = document.createElement('p'); -->
+									<!-- contentElement.textContent = content; -->
 
-					tagsList.style.display = 'none'; // 隐藏标签选择列表
-					inputCount++; // 增加用户的输入次数
-				});
+									<!-- const dateElement = document.createElement('small'); -->
+									<!-- dateElement.textContent = date; -->
 
-				// 监听图片文件输入框的变化事件
-				imageInput.addEventListener('change', function(event) {
-					const files = event.target.files; // 获取用户选择的文件列表
+									<!-- //messageDiv.appendChild(titleElement); -->
+									<!-- //messageDiv.appendChild(contentElement); -->
+									<!-- //messageDiv.appendChild(dateElement); -->
 
-					// 清空之前的图片显示
-					uploadedImagesContainer.innerHTML = '';
+									<!-- //messagesDiv.appendChild(messageDiv); -->
 
-					// 遍历用户选择的每个文件
-					for (let i = 0; i < files.length; i++) {
-						const file = files[i]; // 获取当前文件
+									<!-- // 清除表单 -->
+									<!-- messageForm.reset(); -->
 
-						// 检查是否选择了文件
-						if (file) {
-							// 创建一个FileReader对象
-							const reader = new FileReader();
+									<!-- // 清空 checkphotoIDs，準備下一次儲存 -->
+									<!-- checkphotoIDs.length = 0; -->
+									<!-- checkmsgIDs.length = 0; -->
+								<!-- }) -->
+								<!-- .catch((error) => { -->
+									<!-- console.error('保存数据到 Firestore 时发生错误：', error); -->
+								<!-- }); -->
+						<!-- } -->
+					<!-- }) -->
+					<!-- .catch((error) => { -->
+						<!-- console.error('查询文档时发生错误：', error); -->
+					<!-- }); -->
+			<!-- }); -->
+			// 提交表單時觸發
+			messageForm.addEventListener('submit', function(event) {
+				event.preventDefault();
+				//const userId = document.getElementById("getProfileUserId").innerHTML;
+				const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+				const title = document.getElementById('titleInput').value;
+				const content = document.getElementById('contentInput').value;
+				const date = document.getElementById('dateInput').value;
+				
+				// 获取 Cloud Firestore 数据库引用
+				const db = firebase.firestore();
 
-							// 当文件加载完成后执行以下代码
-							reader.onload = function(e) {
-								// 创建一个新的img元素
-								const img = document.createElement('img');
-								// 设置img元素的src属性为文件的URL，从而显示在网页上
-								img.src = e.target.result;
-								img.classList.add('fixed-size-image');
-								// 将img元素添加到存放上传图片的容器中
-								uploadedImagesContainer.appendChild(img);
+				// 检查是否有相同的msgID
+				db.collection('project').doc('journal').collection('journal')
+					.where('title', '==', title)
+					.get()
+					.then((querySnapshot) => {
+						if (!querySnapshot.empty) {
+							alert('標題名稱重複！');
+						} else {
+						
+							// 在按下儲存按鈕時，再將選擇的圖片ID一同儲存到Firebase
+							const data = {
+								line_id: userId,
+								title: title,
+								content: content,
+								date: date,
+								checkphotoIDs: checkphotoIDs, // 添加 checkphotoIDs
+								checkmsgIDs: checkmsgIDs,
+								airTemperature: airTemperature,
+								county: selectedCounty + '_' + selectedDistrict, // 將選擇的縣市和地區用下劃線連接起來
+								// 其他字段...
 							};
 
-							// 读取文件
-							reader.readAsDataURL(file);
+							const docName = userId + '_' + title + '_' + date;
+							const docPath = 'project/journal/journal/' + docName;
+							const firestore = firebase.firestore();
+							const userDocRef = firestore.collection('project').doc('CarbonNegative').collection('users').doc(userId);
+
+							db.doc(docPath).set(data)
+								.then(() => {
+									console.log('数据已成功保存到 Firestore 中！');
+									const successMessage = '穿著札記已成功儲存！';
+									// 使用 FieldValue.increment() 来增加 money 字段的值
+									userDocRef.update({
+										money: firebase.firestore.FieldValue.increment(0.5)
+									})
+									.then(() => {
+										console.log("Money updated successfully!");
+										const moneyupdateMessage = '恭喜您賺取碳資產0.5！！';
+										// 将成功消息和更新后的 money 消息一起显示
+										displaySuccessMessage(successMessage, moneyupdateMessage);
+									})
+									.catch((error) => {
+										console.error("Error updating money: ", error);
+										// 即使 money 更新失败，也显示成功保存穿着札记的消息
+										displaySuccessMessage(successMessage, "更新碳資產时发生错误。");
+									});
+									//const successImage = 'https://firebasestorage.googleapis.com/v0/b/test-7e963.appspot.com/o/images%2F%E9%9B%86%E9%BB%9E%E5%8D%A1%E9%BB%9E%E6%95%B8qr%20code.png?alt=media&token=572a71cc-9496-414c-b81c-d0a81116ac9d'; // 替换成你的图片链接
+									//displaySuccessMessage(successMessage, moneyupdateMessage);
+								})
+								.catch((error) => {
+									console.error('保存数据到 Firestore 时发生错误：', error);
+								});
 						}
-					}
-					
-					 const imageFiles = event.target.files; // 获取用户选择的文件列表
-
-					
-				});
-
-				// 监听表单的提交事件
-				messageForm.addEventListener('submit', function(event) {
-					event.preventDefault();
-
-					// 获取表单中的值
-					const title = document.getElementById('titleInput').value;
-					const content = document.getElementById('contentInput').value;
-					//const userId = document.getElementById("getProfileUserId").innerHTML;
-					const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 假设用户ID为固定值
-					let tags = tagsInput.value.match(/#[^\s#]*/g); // 使用正则表达式匹配标签
-					const imageFiles = [];
-					for (let i = 0; i < imageInput.files.length; i++) {
-						imageFiles.push(imageInput.files[i]);
-					}
-
-					// 将以上内容存储到 Cloud Firestore，具体实现请根据你的项目进行编写
-					saveMessageToFirestore(title, content,  userId, tags, imageFiles);
-					console.log(imageFiles);
-
-					// 提交后清空表单
-					messageForm.reset();
-					// 清空之前的图片显示
-					uploadedImagesContainer.innerHTML = '';
-					
-				});
-			};
-
-	
-					
-		async function saveMessageToFirestore(title, content, userId, tags, imageFiles) {
-			const db = firebase.firestore();
-
-			// 构建文档名称，使用 userId_title 形式
-			const docName = userId + '_' + title;
-
-			try {
-				// 检查是否存在相同标题的消息
-				const querySnapshot = await db.collection('project').doc('messages').collection('messages')
-					.where('title', '==', title)
-					.get();
-
-				if (!querySnapshot.empty) {
-					// 如果存在相同标题的消息，显示警告消息并且不执行保存操作
-					alert('標題名稱重複！');
-					// 清空之前的图片显示
-					uploadedImagesContainer.innerHTML = '';
-					return;
-				}
-
-				// 创建文档引用
-				const newMessageRef = db.collection('project').doc('messages').collection('messages').doc(docName);
-
-				// 构建消息对象
-				const messageData = {
-					title: title,
-					content: content,
-					time: firebase.firestore.FieldValue.serverTimestamp(),
-					userId: userId,
-					tags: tags,
-					// 其他字段...
-				};
-
-				// 将消息数据保存到 Cloud Firestore
-				await newMessageRef.set(messageData);
-				console.log('消息已成功保存到 Cloud Firestore！');
-
-				// 上传图片到 Firebase Storage，并将图片下载URL保存到消息对象中
-				for (let i = 0; i < imageFiles.length; i++) {
-					const imageUrl = await uploadImageToStorage(imageFiles[i], newMessageRef);
-					// 将图片的 URL 设置为消息对象的字段，每张图片使用不同的字段名
-					await newMessageRef.update({ ['imageUrl_' + i]: imageUrl });
-				}
-
-				alert('留言已成功上傳！');
-			} catch (error) {
-				console.error('保存消息到 Cloud Firestore 时出错：', error);
-				alert('保存消息到 Cloud Firestore 时出错：' + error.message);
-			}
-		}
-
-
-
-						
-		async function uploadImageToStorage(imageFile, messageRef) {
-			try {
-				const storage = firebase.storage();
-				const storageRef = storage.ref();
-				const imageRef = storageRef.child('images/' + messageRef.id);
-
-				// 将图像文件上传到 Firebase Storage
-				const snapshot = await imageRef.put(imageFile);
-				console.log('圖片已成功上傳到 Firebase Storage！');
-				alert('圖片已成功上傳！');
-
-				// 获取上传图像文件的下载URL
-				const url = await imageRef.getDownloadURL();
-				return url;
-			} catch (error) {
-				console.error('將圖片上傳到 Firebase Storage 時出错：', error);
-				alert('將圖片上傳到 Firebase Storage 時出错：' + error.message);
-			}
-		}
-		
-		
-		
-
-
-// 外部定义 generateRandomId() 函数
-function generateRandomId() {
-    // 创建一个随机整数作为ID
-    const randomId = Math.floor(Math.random() * 1000000);
-    // 将时间戳与随机ID连接起来
-    return randomId;
-}
-
-
-
-let selectedMessageId = null; // 全局变量用于存储当前选定的留言ID
-let globalMessageInfo = {}; // 在这里定义全局变量
-const db = firebase.firestore();
-const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 假设用户ID为固定值
-
-
-async function displayMessages() {
-    try {
-        console.log('Fetching messages from the database...');
-        const querySnapshot = await db.collection('project').doc('messages').collection('messages').get();
-        console.log('Messages fetched successfully:', querySnapshot.docs.length, 'messages found.');
-
-        const messagesContainer = document.getElementById('messages');
-        messagesContainer.innerHTML = ''; // 清空消息容器
-
-        for (const doc of querySnapshot.docs) {
-            console.log('Rendering message:', doc.id);
-            const message = doc.data();
-
-            const formattedTime = message.time.toDate().toLocaleString();
-
-            // 创建消息容器
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-
-            // 标题和按钮容器
-            const titleAndButtonsContainer = document.createElement('div');
-            titleAndButtonsContainer.style.display = 'flex';
-            titleAndButtonsContainer.style.alignItems = 'center';
-
-            // 标题
-            const titleElement = document.createElement('h4');
-            titleElement.innerHTML = '<strong>標題:</strong> ' + message.title;
-            titleElement.style.width = '2000px';
-            titleAndButtonsContainer.appendChild(titleElement);
-
-            // 如果用户是消息的作者，添加编辑和删除按钮
-            if (message.userId === userId) {
-                const editButton = document.createElement('button');
-                editButton.innerHTML = '<i class="fas fa-edit" style="margin-right: 8px;"></i>修改';
-                editButton.style.backgroundColor = '#007bff';
-                editButton.style.marginLeft = 'auto';
-                titleAndButtonsContainer.appendChild(editButton);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '<i class="fas fa-trash" style="margin-right: 8px;"></i>刪除';
-                deleteButton.style.backgroundColor = 'red';
-                deleteButton.style.marginLeft = '10px';
-                titleAndButtonsContainer.appendChild(deleteButton);
-            }
-
-            messageElement.appendChild(titleAndButtonsContainer);
-
-            // 用户信息
-            const userInfoElement = document.createElement('p');
-            try {
-                const userProfile = await fetchUserProfile(message.userId);
-                if (userProfile) {
-                    const { pictureUrl, displayName } = userProfile;
-                    userInfoElement.innerHTML = `<img src="${pictureUrl}" alt="User Avatar" class="avatar" /> <strong>${displayName}</strong> (${message.userId})`;
-                } else {
-                    userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
-                }
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
-            }
-            messageElement.appendChild(userInfoElement);
-
-            // 时间
-            const timeElement = document.createElement('p');
-            timeElement.innerHTML = `<strong></strong> ${formattedTime}`;
-	    timeElement.style.marginLeft = '55px';
-	    timeElement.style.fontSize = '12px'; // 设置文字大小为10像素
-            messageElement.appendChild(timeElement);
-
-            // 内容
-            const contentElement = document.createElement('p');
-	    contentElement.style.marginLeft = '55px';
-            contentElement.innerHTML = ` <strong></strong> <span class="large-text">${message.content}</span>`;
-            messageElement.appendChild(contentElement);
-
-            // 标签
-            const tagsElement = document.createElement('p');
-            tagsElement.innerHTML = `<strong></strong> ${message.tags ? getTagsAsLinks(message.tags) : ''}`;
-	    tagsElement.style.marginLeft = '55px';
-            messageElement.appendChild(tagsElement);
-
-            // 图片
-            const imagesElement = document.createElement('p');
-            imagesElement.innerHTML = '';
-	    imagesElement.style.marginLeft = '55px';
-            messageElement.appendChild(imagesElement);
-
-            const imagesList = document.createElement('ul');
-            Object.keys(message).filter(key => key.startsWith('imageUrl_')).forEach(key => {
-                const listItem = document.createElement('li');
-                const img = document.createElement('img');
-                img.src = message[key];
-                img.style.width = '200px';
-                img.style.height = '220px';
-		img.style.marginLeft = '60px'; // 图片向右移动 100px
-                listItem.appendChild(img);
-                imagesList.appendChild(listItem);
-            });
-            messageElement.appendChild(imagesList);
-
-            // 评论容器
-            const commentContainer = document.createElement('div');
-            commentContainer.id = 'comments-' + doc.id;
-            messageElement.appendChild(commentContainer);
-
-            // 评论表单
-            const commentForm = document.createElement('form');
-            commentForm.classList.add('commentForm');
-            commentForm.setAttribute('data-message-id', doc.id);
-
-            const commentDiv = document.createElement('div');
-            commentDiv.style.display = 'flex';
-            commentDiv.style.alignItems = 'center';
-
-            const commentInput = document.createElement('input');
-            commentInput.type = 'text';
-            commentInput.name = 'commentContent';
-            commentInput.placeholder = '請输入評論内容';
-            commentInput.style.marginRight = '10px';
-            commentInput.style.border = '2px solid #ccc';
-            commentInput.style.borderRadius = '5px';
-            commentInput.style.padding = '5px';
-	    commentInput.style.width = '1600px';
-
-            const submitCommentButton = document.createElement('button');
-            submitCommentButton.type = 'submit';
-            submitCommentButton.classList.add('submitCommentButton');
-            submitCommentButton.textContent = '提交評論';
-
-            commentDiv.appendChild(commentInput);
-            commentDiv.appendChild(submitCommentButton);
-            commentForm.appendChild(commentDiv);
-            messageElement.appendChild(commentForm);
-
-            // 添加评论表单的事件监听器
-            commentForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const commentContent = commentInput.value.trim();
-                if (commentContent) {
-                    const messageInfo = { userId: message.userId, title: message.title };
-                    handleCommentSubmit(event, messageInfo, userId, db, commentContent);
-                } else {
-                    alert('評論内容不能为空');
-                }
-            });
-
-            messagesContainer.appendChild(messageElement);
-
-            // 显示评论
-            displayComments(doc.id, commentContainer.id);
-        }
-
-        // 为标签链接添加事件监听器
-        const tagsLinks = document.querySelectorAll('.tag-link');
-        tagsLinks.forEach(tagLink => {
-            tagLink.addEventListener('click', function (event) {
-                event.preventDefault();
-                const tag = tagLink.textContent.trim();
-                filterMessagesByTag(tag);
-            });
-        });
-
-    } catch (error) {
-        console.error('Error fetching messages:', error);
-    }
-}
-
-
-
-		 
-
-
-
-// 将标签数组转换为超链接列表
-function getTagsAsLinks(tagsArray) {
-    if (!Array.isArray(tagsArray)) {
-        return '';
-    }
-
-    let tagsHTML = '';
-    tagsArray.forEach(tag => {
-        tagsHTML += '<a href="#" class="tag-link">' + tag + '</a> ';
-    });
-    return tagsHTML;
-}
-
-async function filterMessagesByTag(tag) {
-    try {
-        const querySnapshot = await db.collection('project').doc('messages').collection('messages').where('tags', 'array-contains', tag).get();
-        console.log('Messages filtered by tag:', tag, 'Total:', querySnapshot.docs.length);
-
-        // 清空之前显示的留言
-        const messagesContainer = document.getElementById('messages');
-        messagesContainer.innerHTML = '';
-
-        // 遍历每条留言并渲染到 HTML 页面上
-        for (const doc of querySnapshot.docs) {
-            console.log('Rendering message:', doc.id);
-            const message = doc.data(); // 获取留言数据
-
-            // 将时间转换为格式化的字符串
-            const formattedTime = message.time.toDate().toLocaleString(); // 将时间转换为本地时间格式的字符串
-
-            // 创建消息容器
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
-
-            // 标题和按钮容器
-            const titleAndButtonsContainer = document.createElement('div');
-            titleAndButtonsContainer.style.display = 'flex';
-            titleAndButtonsContainer.style.alignItems = 'center';
-
-            // 标题
-            const titleElement = document.createElement('h4');
-            titleElement.innerHTML = '<strong>標題:</strong> ' + message.title;
-            titleElement.style.width = '2000px';
-            titleAndButtonsContainer.appendChild(titleElement);
-
-            // 如果用户是消息的作者，添加编辑和删除按钮
-            if (message.userId === userId) {
-                const editButton = document.createElement('button');
-                editButton.innerHTML = '<i class="fas fa-edit" style="margin-right: 8px;"></i>修改';
-                editButton.style.backgroundColor = '#007bff';
-                editButton.style.marginLeft = 'auto';
-                titleAndButtonsContainer.appendChild(editButton);
-
-                const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '<i class="fas fa-trash" style="margin-right: 8px;"></i>刪除';
-                deleteButton.style.backgroundColor = 'red';
-                deleteButton.style.marginLeft = '10px';
-                titleAndButtonsContainer.appendChild(deleteButton);
-            }
-
-            messageElement.appendChild(titleAndButtonsContainer);
-
-            // 用户信息
-            const userInfoElement = document.createElement('p');
-            try {
-                const userProfile = await fetchUserProfile(message.userId);
-                if (userProfile) {
-                    const { pictureUrl, displayName } = userProfile;
-                    userInfoElement.innerHTML = `<img src="${pictureUrl}" alt="User Avatar" class="avatar" /> <strong>${displayName}</strong> (${message.userId})`;
-                } else {
-                    userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
-                }
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
-            }
-            messageElement.appendChild(userInfoElement);
-
-            // 时间
-            const timeElement = document.createElement('p');
-            timeElement.innerHTML = `<strong></strong> ${formattedTime}`;
-	    timeElement.style.marginLeft = '55px';
-	    timeElement.style.fontSize = '10px'; // 设置文字大小为10像素
-            messageElement.appendChild(timeElement);
-
-            // 内容
-            const contentElement = document.createElement('p');
-            contentElement.innerHTML = `<strong></strong> <span class="large-text">${message.content}</span>`;
-	    contentElement.style.marginLeft = '55px';
-            messageElement.appendChild(contentElement);
-
-            // 标签
-            const tagsElement = document.createElement('p');
-            tagsElement.innerHTML = ` ${message.tags ? getTagsAsLinks(message.tags) : ''}`;
-	    tagsElement.style.marginLeft = '55px';
-            messageElement.appendChild(tagsElement);
-
-            // 图片
-            const imagesElement = document.createElement('p');
-            imagesElement.innerHTML = '';
-	    imagesElement.style.marginLeft = '55px';
-            messageElement.appendChild(imagesElement);
-
-            const imagesList = document.createElement('ul');
-            Object.keys(message).filter(key => key.startsWith('imageUrl_')).forEach(key => {
-                const listItem = document.createElement('li');
-                const img = document.createElement('img');
-                img.src = message[key];
-                img.style.width = '200px';
-                img.style.height = '200px';
-                listItem.appendChild(img);
-                imagesList.appendChild(listItem);
-            });
-            messageElement.appendChild(imagesList);
-
-            // 评论容器
-            const commentContainer = document.createElement('div');
-            commentContainer.id = 'comments-' + doc.id;
-            messageElement.appendChild(commentContainer);
-
-            // 评论表单
-            const commentForm = document.createElement('form');
-            commentForm.classList.add('commentForm');
-            commentForm.setAttribute('data-message-id', doc.id);
-
-            const commentDiv = document.createElement('div');
-            commentDiv.style.display = 'flex';
-            commentDiv.style.alignItems = 'center';
-
-            const commentInput = document.createElement('input');
-            commentInput.type = 'text';
-            commentInput.name = 'commentContent';
-            commentInput.placeholder = '請输入評論内容';
-            commentInput.style.marginRight = '10px';
-            commentInput.style.border = '2px solid #ccc';
-            commentInput.style.borderRadius = '5px';
-            commentInput.style.padding = '5px';
-            commentInput.style.width = '1600px';
-
-            const submitCommentButton = document.createElement('button');
-            submitCommentButton.type = 'submit';
-            submitCommentButton.classList.add('submitCommentButton');
-            submitCommentButton.textContent = '提交評論';
-
-            commentDiv.appendChild(commentInput);
-            commentDiv.appendChild(submitCommentButton);
-            commentForm.appendChild(commentDiv);
-            messageElement.appendChild(commentForm);
-
-            // 添加评论表单的事件监听器
-            commentForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const commentContent = commentInput.value.trim();
-                if (commentContent) {
-                    const messageInfo = { userId: message.userId, title: message.title };
-                    handleCommentSubmit(event, messageInfo, userId, db, commentContent);
-                } else {
-                    alert('評論内容不能为空');
-                }
-            });
-
-            messagesContainer.appendChild(messageElement);
-
-            // 显示评论
-            displayComments(doc.id, commentContainer.id);
-        }
-
-        // 为标签链接添加事件监听器
-        const tagsLinks = document.querySelectorAll('.tag-link');
-        tagsLinks.forEach(tagLink => {
-            tagLink.addEventListener('click', function (event) {
-                event.preventDefault();
-                const tag = tagLink.textContent.trim();
-                filterMessagesByTag(tag);
-            });
-        });
-
-    } catch (error) {
-        console.error('Error filtering messages by tag:', error);
-    }
-}
-
-
-
-
-async function displayComments(messageId, commentContainerId) {
-    try {
-        const querySnapshot = await db.collection('project').doc('messages').collection('reply').where('messageId', '==', messageId).get();
-        console.log('Comments fetched successfully for message:', messageId, 'Total:', querySnapshot.docs.length);
-
-        const commentsContainer = document.getElementById(commentContainerId);
-        if (!commentsContainer) {
-            console.error('Comments container not found:', commentContainerId);
-            return;
-        }
-
-        commentsContainer.innerHTML = '';
-
-        const userIds = querySnapshot.docs.map(doc => doc.data().userId);
-        console.log('User IDs:', userIds);  // 调试输出
-
-        const userProfiles = await Promise.all(userIds.map(userId => fetchUserProfile(userId)));
-        console.log('User profiles:', userProfiles);  // 调试输出
-
-        const userProfileMap = {};
-        userIds.forEach((userId, index) => {
-            userProfileMap[userId] = userProfiles[index];
-        });
-
-        console.log('User profile map:', userProfileMap); // 调试输出，检查 userProfileMap
-
-        for (const doc of querySnapshot.docs) {
-            const commentData = doc.data();
-            const formattedTime = commentData.time.toDate().toLocaleString();
-
-            // 获取用户资料
-            const userProfile = userProfileMap[commentData.userId] || { pictureUrl: '', displayName: '' };
-            const { pictureUrl, displayName } = userProfile;
-
-            // 检查用户资料是否正确获取
-            if (!displayName || !pictureUrl) {
-                console.error('Failed to fetch profile for user:', commentData.userId);
-            } else {
-                console.log('Fetched profile:', displayName, pictureUrl);  // 添加日志输出
-            }
-
-            const userInfoHtml = '<p><img src="' + pictureUrl + '" alt="User Avatar" class="avatar" /> <strong>' + displayName + '</strong> (' + commentData.userId + ')</p>';
-
-            // 时间元素
-            const timeElement = `<p style="margin-left: 55px; font-size: 12px;"><strong></strong> ${formattedTime}</p>`;
-
-            // 内容元素
-            const contentElement = `<p style="margin-left: 55px; font-size: 24px;"><strong></strong> ${commentData.content}</p>`;
-
-            let commentElement = '<div class="comment" style="border: 1px solid #ccc; background-color: #f5f5f5; margin-bottom: 10px; padding: 10px;" data-comment-id="' + doc.id + '">';
-            commentElement += userInfoHtml;
-            commentElement += timeElement;
-            commentElement += contentElement;
-
-            if (commentData.userId === userId) {
-                const buttonsContainer = document.createElement('div');
-                buttonsContainer.style.display = 'flex';
-                buttonsContainer.style.alignItems = 'center';
-
-                const editCommentButton = document.createElement('button');
-                const icon3 = document.createElement('i');
-                icon3.className = 'fas fa-edit';
-                icon3.style.marginRight = '8px';
-                const textNode3 = document.createTextNode('修改評論');
-                editCommentButton.appendChild(icon3);
-                editCommentButton.appendChild(textNode3);
-                editCommentButton.style.backgroundColor = '#007bff';
-                buttonsContainer.appendChild(editCommentButton);
-
-                const deleteCommentButton = document.createElement('button');
-                const icon4 = document.createElement('i');
-                icon4.className = 'fas fa-trash';
-                icon4.style.marginRight = '8px';
-                const textNode4 = document.createTextNode('删除評論');
-                deleteCommentButton.appendChild(icon4);
-                deleteCommentButton.appendChild(textNode4);
-                deleteCommentButton.style.backgroundColor = 'red';
-                deleteCommentButton.style.marginLeft = '10px';
-                buttonsContainer.appendChild(deleteCommentButton);
-
-                // 添加按钮到评论
-                commentElement += buttonsContainer.outerHTML;
-            }
-
-            commentElement += '</div>';
-
-            commentsContainer.insertAdjacentHTML('beforeend', commentElement);
-        }
-    } catch (error) {
-        console.error('Error fetching comments:', error);
-    }
-}
-
-
-
-
-    
-
-
-
-
-async function handleCommentSubmit(event, messageInfo, userId, db, commentContent) {
-    console.log('handleCommentSubmit function is called.');
-    
-    event.preventDefault(); // 阻止表单默认提交行为
-
-    try {
-        // 将评论内容存储到数据库中
-        const docName = messageInfo.userId + '_' + messageInfo.title + '_' + generateRandomId();
-        console.log(docName);
-        const replyRef = db.collection('project').doc('messages').collection('reply').doc(docName);
-
-        // 更新评论内容
-        await replyRef.set({
-            userId: userId, // 评论的用户ID
-            messageId: messageInfo.userId + '_' + messageInfo.title, // 关联的留言ID
-            content: commentContent, // 评论内容
-            time: firebase.firestore.FieldValue.serverTimestamp() // 当前时间戳
-        });
-
-        console.log('Comment added successfully!');
-		alert('評論新增成功');
-		// 添加评论成功后重新加载留言和评论
-        displayMessages(); // 重新加载留言和评论
-    } catch (error) {
-        console.error('Error adding comment:', error);
-    }
-}
-
-
-
-
-
-		
-		
-		
-
-
-
-function editMessage(userId, replyNumber) {
-    // 获取留言内容
-    const db = firebase.firestore();
-    const docName = userId + '_' + replyNumber;
-    const messageRef = db.collection('project').doc('messages').collection('messages').doc(docName);
-
-    // 获取表单元素
-    const form = document.getElementById('editForm');
-
-    // 显示对话框
-    const editDialog = document.getElementById('editDialog');
-    editDialog.style.display = 'block'; // 显示对话框
-
-    // 获取留言数据
-    messageRef.get().then(doc => {
-        if (doc.exists) {
-            const messageData = doc.data();
-
-            // 将留言内容填充到表单字段中
-            form.elements['content'].value = messageData.content;
-            form.elements['tags'].value = messageData.tags.join(' '); // 将标签数组以空格分隔显示在表单中
-
-            // 创建或更新图片链接字段
-            Object.keys(messageData).forEach(key => {
-                if (key.startsWith('imageUrl_')) {
-                    const index = key.split('_')[1];
-                    const imageUrlLink = document.getElementById('imageUrl_' + index + '_link');
-                    if (!imageUrlLink) {
-                        // 如果链接字段不存在，则创建一个
-                        const newLink = document.createElement('a');
-                        newLink.id = 'imageUrl_' + index + '_link';
-                        newLink.href = messageData[key];
-                        newLink.textContent = messageData[key];
-                        const imageContainer = document.getElementById('imageContainer');
-                        imageContainer.appendChild(newLink);
-                    } else {
-                        // 如果链接字段已存在，则更新链接
-                        imageUrlLink.href = messageData[key];
-                        imageUrlLink.textContent = messageData[key];
-                    }
-                }
-            });
-        } else {
-            console.error('留言文檔不存在');
-            alert('留言文檔不存在');
-        }
-    }).catch(error => {
-        console.error('獲取留言資料時發生錯誤：', error);
-        alert('獲取留言資料時發生錯誤：' + error.message);
-    });
-
-form.addEventListener('submit', event => {
-    event.preventDefault();
-
-    // 获取表单数据
-    const formData = new FormData(form);
-    const content = formData.get('content');
-    //const tags = formData.get('tags').split('#').map(tag => tag.trim()).filter(tag => tag !== ''); 
-	let tags = formData.get('tags').split('#').map(tag => tag.trim()).filter(tag => tag !== ''); // 将标签以#分隔为数组
-
-     // 添加#到每个标签
-     tags = tags.map(tag => '#' + tag);
-		
-    // 检查是否有选择了新图片
-	const imageFiles = formData.getAll('image'); // 获取所有上传的图片文件
-	if (imageFiles.some(file => new RegExp('^image/').test(file.type))) {
-		// 至少有一个文件是图像类型
-		uploadImageToServer(userId, replyNumber, imageFiles, true)
-			.then(() => {
-				// 图片上传完成后，更新留言内容和标签
-				updateMessageContentAndTagsnewimage(messageRef, content, tags, editDialog);
-			})
-			.catch(error => {
-				console.error('上傳圖片時發生錯誤：', error);
-				alert('上傳圖片時發生錯誤：' + error.message);
-			});
-	} else {
-		// 没有选择新图片，直接更新留言内容和标签
-		const imageUrls = {};
-		Object.keys(formData).forEach(key => {
-			if (key.startsWith('imageUrl_')) {
-				imageUrls[key] = formData[key];
-			}
-		});
-		updateMessageContentAndTags(messageRef, content, tags, editDialog, imageUrls);
-	}
-
-
-
-});
-}
-
-
-
-
-
-
-
-function updateMessageContentAndTags(messageRef, content, tags, editDialog, imageUrls) {
-    // 更新留言内容、标签和图片链接
-    const updateData = {
-        content: content,
-        tags: tags
-    };
-
-    // 添加图片链接到更新数据中
-    Object.keys(imageUrls).forEach(key => {
-        updateData[key] = imageUrls[key];
-    });
-
-    messageRef.update(updateData)
-        .then(() => {
-            console.log('留言已成功更新');
-            alert("留言已成功更新！");
-            editDialog.style.display = 'none'; // 更新成功后隐藏对话框
-        })
-        .catch(error => {
-            console.error('更新留言時發生錯誤：', error);
-            alert('更新留言時發生錯誤：' + error.message);
-        });
-}
-
-
-function updateMessageContentAndTagsnewimage(messageRef, content, tags, editDialog) {
-    // 更新留言内容、标签和图片链接
-    const updateData = {
-        content: content,
-        tags: tags
-    };
-
-    
-
-    messageRef.update(updateData)
-        .then(() => {
-            console.log('留言已成功更新');
-            alert("留言已成功更新！");
-            editDialog.style.display = 'none'; // 更新成功后隐藏对话框
-        })
-        .catch(error => {
-            console.error('更新留言時發生錯誤：', error);
-            alert('更新留言時發生錯誤：' + error.message);
-        });
-}
-
-
-
-		let uploadStarted = false;
-		let uploadFinished = false;
-
-		async function uploadImageToServer(userId, replyNumber, imageFiles, deleteExistingImages = false) {
-			try {
-				const db = firebase.firestore();
-				const docName = userId + '_' + replyNumber;
-				const messageRef = db.collection('project').doc('messages').collection('messages').doc(docName);
-
-				// 删除数据库中原有的所有图片链接（如果需要）
-				if (deleteExistingImages) {
-					const deletePromises = [];
-					const messageData = await messageRef.get().then(doc => doc.data());
-					for (let i = 0; i < Object.keys(messageData).length; i++) {
-						const imageUrlKey = 'imageUrl_' + i;
-						deletePromises.push(messageRef.update({
-							[imageUrlKey]: firebase.firestore.FieldValue.delete() // 使用 delete 方法删除字段
-						}));
-					}
-					// 等待所有删除操作完成
-					await Promise.all(deletePromises);
-					console.log('資料庫中原有的圖片連結已成功刪除');
-				}
-
-
-				// 上传所有新图片到服务器
-				const uploadPromises = imageFiles.map(async (imageFile, index) => {
-					try {
-						// 创建存储引用
-						const storageRef = firebase.storage().ref();
-
-						// 生成唯一的文件名
-						const fileName = `${Date.now()}_${imageFile.name}`;
-
-						// 构建存储路径，将文件上传到 `images` 文件夹下
-						const imagePath = `images/${fileName}`;
-
-						// 上传文件到 Firebase Storage
-						const uploadTask = storageRef.child(imagePath).put(imageFile);
-						
-						
-						 // 添加上传任务状态变化监听器
-						uploadTask.on('state_changed', 
-							snapshot => {
-								// 上传开始
-								if (!uploadStarted) {
-									console.log('Upload started');
-									uploadStarted = true;
-								}
-								
-								// 上传进度
-								const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-								console.log('Upload is ' + progress + '% done');
-
-								// 上传完成
-								if (progress === 100 && !uploadFinished) {
-									console.log('Upload finished');
-									uploadFinished = true;
-									// 在这里添加上传完成后的逻辑处理
-								}
-							},
-							error => {
-								// 上传过程中出错
-								console.error('Error uploading image to Firebase Storage:', error);
-								reject(error);
-							}
-						);
-
-						// 返回一个 Promise，等待上传完成
-						return new Promise((resolve, reject) => {
-							// 监听上传任务状态变化
-							uploadTask.on('state_changed', 
-								snapshot => {
-									// 上传进度
-									const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-									console.log('Upload is ' + progress + '% done');
-								},
-								error => {
-									// 上传过程中出错
-									console.error('Error uploading image to Firebase Storage:', error);
-									reject(error);
-								},
-								async () => {
-									// 上传完成
-									console.log('Image uploaded successfully');
-
-									try {
-										// 获取上传文件的下载 URL
-										const imageUrl = await uploadTask.snapshot.ref.getDownloadURL();
-										console.log('Image URL:', imageUrl);
-
-										// 在上传完成后更新留言数据
-										const updateData = {
-											['imageUrl_' + index]: imageUrl
-										};
-
-										messageRef.update(updateData).then(() => {
-											console.log(`圖片 URL ${index} 已成功更新`);
-											resolve();
-										}).catch(error => {
-											console.error(`更新圖片 URL ${index} 時發生錯誤：`, error);
-											reject(error);
-										});
-									} catch (error) {
-										console.error('Error getting download URL:', error);
-										reject(error);
-									}
-								}
-							);
-						});
-					} catch (error) {
-						console.error('Error uploading image to Firebase Storage:', error);
-						throw error;
-					}
-				});
-
-				// 等待所有图片上传完成
-				await Promise.all(uploadPromises);
-				console.log('所有圖片上傳完成');
-			} catch (error) {
-				console.error('Error uploading images to Firebase Storage:', error);
-				throw error;
-			}
-		}
-
-
-		async function editComment(commentId) {
-			try {
-				const newContent = prompt('請輸入修改後的評論内容：');
-				if (newContent === null) {
-					// 用户取消了输入
-					return;
-				}
-
-				// 更新评论内容和时间戳
-				await db.collection('project').doc('messages').collection('reply').doc(commentId).update({
-					content: newContent,
-					time: firebase.firestore.FieldValue.serverTimestamp() // 更新时间戳
-				});
-
-				console.log('Comment updated successfully:', commentId);
-				alert("評論已成功更新！");
-				// 在这里执行任何其他必要的操作
-				displayMessages(); // 重新加载留言和评论
-				
-			} catch (error) {
-				console.error('Error updating comment:', error);
-			}
-		}
-
-
-
-
-
-
-
-
-
-		function deleteMessage(userId, replyNumber) {
-		console.log(userId);
-		console.log(replyNumber);
-			const confirmDelete = confirm("確定要刪除這篇留言嗎？");
-			if (confirmDelete) {
-				// 构建文档名称，使用 userId_title 形式
-				const docName = userId + '_' + replyNumber;
-
-				// 在 Firestore 中删除文档
-				firebase.firestore().collection('project').doc('messages').collection('messages').doc(docName).delete()
-					.then(() => {
-						console.log('留言已成功删除');
-						alert("留言已成功删除！");
 					})
 					.catch((error) => {
-						console.error('刪除留言時發生錯誤：', error);
+						console.error('查询文档时发生错误：', error);
+					});
+			});
+
+			// 定义 displaySuccessMessage 函数
+			function displaySuccessMessage(successMessage, moneyupdateMessage) {
+				// 使用 alert 显示消息
+				alert(successMessage + "\n" + moneyupdateMessage);
+				
+			}
+
+
+
+
+				// 打开 modal 的函数
+				function openModal(url) {
+					const modal = document.getElementById('imageModal');
+					const modalImg = document.getElementById('modalImage');
+					modal.style.display = 'block';
+					modalImg.src = url;
+
+					// 点击 modal 外部区域时关闭 modal
+					window.onclick = function(event) {
+						if (event.target == modal) {
+							modal.style.display = "none";
+						}
+					}
+
+					// 点击 close 按钮时关闭 modal
+					const closeButton = document.getElementsByClassName('close')[0];
+					closeButton.onclick = function() {
+						modal.style.display = "none";
+					}
+					
+					
+
+					
+
+				}
+				
+				
+				// 获取并显示日记数据
+					function displayJournals(userId) {
+						//const userId = document.getElementById("getProfileUserId").innerHTML;
+						//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+						const journalListDiv = document.getElementById('journalList');
+						let firstLoad = true; // 添加首次加载的标志位
+						
+						
+						// 查询 Firestore 中的日记数据
+						firebase.firestore().collection('project').doc('journal').collection('journal')
+							.onSnapshot((querySnapshot) => { // 设置实时监听器
+								journalListDiv.innerHTML = ''; // 清空日记显示区域
+								querySnapshot.forEach((doc) => {
+									const journalData = doc.data(); // 获取日记数据
+									
+									
+									
+									// 获取文档ID并提取前33个字符
+									const docIdPrefix = doc.id.substring(0, 33);
+									
+									
+									
+
+									// 检查 Line ID 是否等于 userId
+									if (journalData.line_id == userId) {
+										// 创建一个用于显示日记的 div 元素
+										const journalDiv = document.createElement('div');
+										journalDiv.classList.add('journal-entry');
+
+										const titleElement = document.createElement('h4');
+										titleElement.textContent = '標題: ' + journalData.title;
+
+										
+
+										const dateElement = document.createElement('p');
+										dateElement.textContent = '日期: ' + journalData.date;
+										
+										const countyElement = document.createElement('p');
+										countyElement.textContent = '地區: ' + journalData.county;
+										
+										const airTemperatureElement = document.createElement('p');
+										airTemperatureElement.textContent = '氣溫: ' + journalData.airTemperature;
+										
+										const contentElement = document.createElement('h6');
+										contentElement.textContent = '內文: ' + journalData.content;
+										contentElement.style.border = '2px solid gray'; // 設置 1px 寬度的灰色實線邊框
+										contentElement.style.padding = '10px'; // 設置文字與邊框之間的內邊距為 10px
+
+										const checkPhotoIdsElement = document.createElement('p');
+										checkPhotoIdsElement.textContent = '選擇的圖片ID(PhotoID): ' + journalData.checkphotoIDs.join(', ');
+
+										const checkmsgIDsElement = document.createElement('p');
+										checkmsgIDsElement.textContent = '選擇的圖片名稱(msgID): ' + journalData.checkmsgIDs.join(', ');
+
+										const lineIdElement = document.createElement('p');
+										lineIdElement.textContent = 'Line ID: ' + journalData.line_id;
+
+										const modifyButton = document.createElement('button');
+										modifyButton.textContent = '修改';
+										// 将修改按钮的点击事件处理程序设为打开模态对话框
+										modifyButton.addEventListener('click', function () {
+											openModal(doc.id, journalData.line_id, journalData.title,journalData.content, journalData.date,journalData.county,journalData.airTemperature,journalData.checkphotoIDs,journalData.checkmsgIDs); // 传递完整的参数
+										});
+										
+										const deleteButton = document.createElement('button');
+										deleteButton.textContent = '刪除';
+										// 添加 "刪除" 按钮的点击事件处理程序
+										deleteButton.addEventListener('click', function () {
+											deleteJournal(doc.id); // 传递日记文档 ID
+										});
+										
+										// 设置按钮的样式使其具有圆角
+										modifyButton.style.borderRadius = '10px';
+										deleteButton.style.borderRadius = '10px';
+										
+										// 设置按钮的大小
+										modifyButton.style.width = '270px';
+										modifyButton.style.height = '40px';
+
+										deleteButton.style.width = '270px';
+										deleteButton.style.height = '40px';
+										
+										deleteButton.style.backgroundColor = 'red';
+
+										
+										// 创建按钮容器，并设置样式使其水平排列
+										const buttonContainer = document.createElement('div');
+										buttonContainer.classList.add('button-container');
+										buttonContainer.style.display = 'flex'; // 设置为 Flex 布局
+										buttonContainer.style.justifyContent = 'space-between'; // 设置项目在容器中的对齐方式	
+										buttonContainer.appendChild(modifyButton);
+										buttonContainer.appendChild(deleteButton);
+
+										journalDiv.appendChild(titleElement);										
+										journalDiv.appendChild(dateElement);
+										journalDiv.appendChild(countyElement);
+										journalDiv.appendChild(airTemperatureElement);
+										journalDiv.appendChild(contentElement);										
+										journalDiv.appendChild(checkPhotoIdsElement);
+										journalDiv.appendChild(checkmsgIDsElement);
+										// 显示图片
+										displayImages(journalData.checkphotoIDs, journalDiv);
+										journalDiv.appendChild(lineIdElement);
+										journalDiv.appendChild(buttonContainer);
+										//journalDiv.appendChild(modifyButton);
+										//journalDiv.appendChild(deleteButton);
+
+										// 将 journalDiv 添加到日记显示区域
+										journalListDiv.appendChild(journalDiv);
+							}
+						});
+						
+						if (firstLoad) {
+							firstLoad = false; // 将首次加载标志位设为 false
+						}
+					}, (error) => {
+						console.error('Error getting journals:', error);
 					});
 			}
-		}
+
+					// 显示图片
+					function displayImages(imageIds, journalDiv) {
+						imageIds.forEach((imageId) => {
+							// 创建一个用于显示图片的 img 元素
+							const imgElement = document.createElement('img');
+							imgElement.src = ''; // 设置初始的 src 属性为空，等待加载图片
+
+							// 从 Firebase Storage 中检索图片
+							const storageRef = firebase.storage().ref().child('images/' + imageId + '.jpg');
+							storageRef.getDownloadURL()
+								.then((url) => {
+									// 加载成功后，设置图片的 src 属性
+									imgElement.src = url;
+								})
+								.catch((error) => {
+									console.error('Error getting download URL:', error);
+								});
+
+							// 添加样式以固定图片大小
+							imgElement.style.width = '200px'; // 设置宽度
+							imgElement.style.height = 'auto'; // 设置高度自适应，保持宽高比
+
+							// 将图片添加到图片显示区域
+							journalDiv.appendChild(imgElement); // 添加到日记 div 元素中
+						});
+					}
+
+
+
+
+
+			// 全局变量，用于存储选定的图片ID和消息ID
+			let globalCheckphotoIDs = [];
+			let globalCheckmsgIDs = [];
+
+
+			function openModal(docId, line_id, title, content, date,county,airTemperature,checkphotoIDs, checkmsgIDs) {
+				const modal = document.getElementById('myModal');
+				const span = document.getElementsByClassName('close')[0];
+				modal.style.display = "block";
+
+				// 在模态对话框中设置更新函数的参数
+				span.onclick = function () {
+					modal.style.display = "none";
+				};
+				window.onclick = function (event) {
+					if (event.target == modal) {
+						modal.style.display = "none";
+					}
+				};
+
+				const modifyImageButton = document.getElementById('modifyImageButton');
+				if (modifyImageButton) { // 如果存在 modifyImageButton 元素
+					modifyImageButton.onclick = function () {
+						displayImagesForSelection();
+					};
+				} else {
+					console.error('无法找到确认按钮元素');
+				}
+
+				const confirmButton = document.getElementById('confirmButton');
+				if (confirmButton) { // 如果存在 confirmButton 元素
+					confirmButton.onclick = function () {
+						// 直接调用 updateJournal 函数，并传递当前的全局变量值
+						updateJournal(line_id, title, content, date,county,airTemperature, checkphotoIDs, checkmsgIDs, globalCheckphotoIDs, globalCheckmsgIDs);
+					};
+				} else {
+					console.error('无法找到确认按钮元素');
+				}
+				
+				
+				
+				// 在點擊"選擇地區"按鈕後顯示縣市和地區下拉選單
+					document.getElementById("showSelectBtn2").addEventListener("click", function() {
+						var countySelect2 = document.getElementById("countySelect2");			
+						countySelect2.style.display = "block"; // 顯示縣市下拉選單
+						
+					});
+					
+					
+					fetch('https://opendata.cwa.gov.tw/fileapi/v1/opendataapi/O-A0001-001?Authorization=CWA-9B0C0FCC-BA27-4C3C-88B6-18BC9E8672FD&downloadType=WEB&format=JSON')
+						.then(response => response.json())
+						.then(data => {
+							// 確保資料不是空的
+							if (data && data.cwaopendata && data.cwaopendata.dataset && data.cwaopendata.dataset.Station) {
+								// 遍歷資料，動態生成縣市選項
+								data.cwaopendata.dataset.Station.forEach(station => {
+									var option = document.createElement('option');
+									option.text = `${station.GeoInfo.CountyName} - ${station.GeoInfo.TownName}`;
+									option.value = `${station.GeoInfo.CountyName}-${station.GeoInfo.TownName}`;
+									
+									// 檢查是否已存在相同值的選項
+									var existingOptions = document.querySelectorAll('#countySelect2 option');
+									var isDuplicate = Array.from(existingOptions).some(existingOption => existingOption.value === option.value);
+									
+									// 如果不存在重複的選項，則添加新的選項
+									if (!isDuplicate) {
+										document.getElementById("countySelect2").appendChild(option);
+									}
+								});
+							} else {
+								console.error('No data found in response:', data);
+							}
+						})
+						.catch(error => console.error('Error fetching data:', error));
+
+					// 當選擇縣市-地區後顯示AirTemperature
+					document.getElementById("countySelect2").addEventListener("change", function() {
+						selectedCounty = this.value.split("-")[0]; // 獲取所選擇的縣市
+						selectedDistrict = this.value.split("-")[1]; // 獲取所選擇的地區
+
+						fetch('https://opendata.cwa.gov.tw/fileapi/v1/opendataapi/O-A0001-001?Authorization=CWA-9B0C0FCC-BA27-4C3C-88B6-18BC9E8672FD&downloadType=WEB&format=JSON')
+							.then(response => response.json())
+							.then(data => {
+								// 確保資料不是空的
+								if (data && data.cwaopendata && data.cwaopendata.dataset && data.cwaopendata.dataset.Station) {
+									// 找到所選擇的縣市-地區對應的氣象站資料
+									var selectedStation = data.cwaopendata.dataset.Station.find(station => {
+										return station.GeoInfo.CountyName === selectedCounty && station.GeoInfo.TownName === selectedDistrict;
+									});
+
+									if (selectedStation) {
+										airTemperature = selectedStation.WeatherElement.AirTemperature; // 獲取該氣象站的AirTemperature
+										// 在這裡顯示AirTemperature，例如，將其設置到某個元素的textContent中
+										document.getElementById("airTemperatureDisplay2").textContent = "氣溫: " + airTemperature;
+									} else {
+										console.error('No station found for the selected county and district.');
+									}
+								} else {
+									console.error('No data found in response:', data);
+								}
+							})
+							.catch(error => console.error('Error fetching data:', error));
+					});
+			}
+
+
+
+			function displayImagesForSelection() {
+				const imageListDiv = document.getElementById('imageList2');
+				imageListDiv.innerHTML = '';
+				
+				//const userId = document.getElementById("getProfileUserId").innerHTML;
+				const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+
+				firebase.firestore().collection('project').doc('cloth').collection('cloth').get()
+					.then((querySnapshot) => {
+						const promises = [];
+						querySnapshot.forEach((doc) => {
+							if (userId === doc.id.substring(0, 33)) {
+								const photoID = doc.data().photoID;
+								const msgID = doc.data().msgID;
+
+								const promise = storage.ref('images/' + photoID + '.jpg').getDownloadURL()
+									.then((url) => {
+										const imgElement = document.createElement('img');
+										imgElement.src = url;
+										imgElement.style.width = '100px';
+
+										imgElement.addEventListener('click', function() {
+											openModal(url, doc.id, line_id, title,content, date, globalCheckphotoIDs, globalCheckmsgIDs);
+										});
+
+										const selectButton = document.createElement('button');
+										selectButton.textContent = '選擇';
+										selectButton.className = 'small-button';
+										selectButton.addEventListener('click', function() {
+											if (!selectButton.classList.contains('selected-button')) {
+												selectButton.classList.add('selected-button');
+												globalCheckphotoIDs.push(photoID);
+												globalCheckmsgIDs.push(msgID);
+												console.log('选择了图片：', photoID);
+												alert(`已選擇圖片：${msgID}-${photoID}`);
+											} else {
+												selectButton.classList.remove('selected-button');
+												const index = globalCheckphotoIDs.indexOf(photoID);
+												if (index !== -1) {
+													globalCheckphotoIDs.splice(index, 1);
+													globalCheckmsgIDs.splice(index, 1);
+												}
+												alert(`取消選擇圖片：${msgID}-${photoID}`);
+											}
+										});
+
+										const imageWrapperDiv = document.createElement('div');
+										imageWrapperDiv.appendChild(imgElement);
+										imageWrapperDiv.appendChild(selectButton);
+
+										imageListDiv.appendChild(imageWrapperDiv);
+									})
+									.catch((error) => {
+										console.error('获取图片时发生错误：', error);
+									});
+								promises.push(promise);
+							}
+						});
+
+						Promise.all(promises)
+							.then(() => {
+								// 不需要再在此处调用 updateJournal() 函数
+							});
+					})
+					.catch((error) => {
+						console.error('获取图片列表时发生错误：', error);
+					});
+			}
+
+			function updateJournal(line_id, title,content, date,county,airTemperature, checkphotoIDs, checkmsgIDs, globalCheckphotoIDs, globalCheckmsgIDs) {
+				const docId = line_id + '_' + title + '_' + date;
+				let newContent = document.getElementById('newContentInput').value;
+				console.log(checkphotoIDs);
+				console.log(checkmsgIDs);
+				console.log(globalCheckphotoIDs);
+				console.log(globalCheckmsgIDs);
+				
+				 if (!newContent.length) {
+					newContent = content;
+					console.log(content);
+				}
+				
+				if (!globalCheckphotoIDs || !globalCheckphotoIDs.length || !globalCheckmsgIDs || !globalCheckmsgIDs.length) {
+				console.log("checkphotoIDs 或 checkmsgIDs 是空值");
+				globalCheckphotoIDs = checkphotoIDs;
+				globalCheckmsgIDs = checkmsgIDs;
+				}
+
+
+				firebase.firestore().collection('project').doc('journal').collection('journal').doc(docId).update({
+					content: newContent,
+					checkphotoIDs: globalCheckphotoIDs,
+					checkmsgIDs: globalCheckmsgIDs,
+					airTemperature: airTemperature,
+					county: selectedCounty + '_' + selectedDistrict,
+				})
+				.then(() => {
+					console.log('穿著札記已成功修改');
+					alert("穿著札記已成功修改！請重新刷新查看。")
+					document.getElementById('myModal').style.display = "none";
+				})
+				.catch((error) => {
+					console.error('修改日記時發生錯誤：', error);
+				});
+			}
+
+
+
+			// 删除日记
+			function deleteJournal(docId) {
+				// 弹出确认框，确认是否删除日记
+				const confirmDelete = confirm("確定要刪除這篇穿著札記嗎？");
+				if (confirmDelete) {
+					// 在 Firestore 中删除日记文档
+					firebase.firestore().collection('project').doc('journal').collection('journal').doc(docId).delete()
+						.then(() => {
+							console.log('穿著札記已成功删除');
+							alert("穿著札記已成功删除！");
+
+						})
+						.catch((error) => {
+							console.error('刪除穿著札記时发生错误：', error);
+						});
+				}
+			}
+				
+				
+        });
+
+
+
 		
-		async function deleteComment(commentId) {
-		const confirmDelete = confirm("確定要刪除這篇評論嗎？");
-		try {
-			await db.collection('project').doc('messages').collection('reply').doc(commentId).delete();
-			console.log('Comment deleted successfully:', commentId);
-			alert("評論已成功删除！");
-			// 在这里执行任何其他必要的操作
-			displayMessages(); // 重新加载留言和评论
-		} catch (error) {
-			console.error('Error deleting comment:', error);
-		}
-		}
-		
-		
 
 
 
 
 
-//displayMessages(); // 页面加载完成后显示留言
-		
- });
+
+
 
 
 
 	
+	
+
+        
         
         
     </script>
@@ -1265,7 +879,7 @@ function updateMessageContentAndTagsnewimage(messageRef, content, tags, editDial
             display: block;
             width: 100%;
             padding: 10px;
-            background-color: #6a4432;
+            background-color: #007bff;
             color: #fff;
             border: none;
             cursor: pointer;
@@ -1359,187 +973,14 @@ function updateMessageContentAndTagsnewimage(messageRef, content, tags, editDial
 		border-radius: 10px; /* 通过设置合适的像素值来调整圆角的大小 */
 		}
 		
-		#submitButton {
+		button[type="submit"] {
 		border-radius: 10px; /* 通过设置合适的像素值来调整圆角的大小 */
-		
 		}
-		#showAllMessagesButton{
-			background-color: #8d6955;
-		}
-		
 		
 		#confirmButton {
 		border-radius: 10px; /* 通过设置合适的像素值来调整圆角的大小 */
 		}
-		/* 样式表中添加以下样式 */
-		.fixed-size-image {
-			width: 200px; /* 设置图片宽度为200像素 */
-			height: 200px; /* 设置图片高度为200像素 */
-			object-fit: cover; /* 让图片保持原始比例，但填满整个元素，可能会裁剪部分图片 */
-		}
-		 /* 样式化对话框 */
-        .dialog-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .dialog-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
 		
-		#imageContainer {
-			max-width: 300px; /* 设置容器的最大宽度 */
-			max-height: 300px; /* 设置容器的最大高度 */
-			overflow: auto; /* 添加滚动条，以便在容器溢出时滚动查看 */
-		}
-
-
-		#imageContainer img {
-			max-width: 100%;
-			max-height: 100%;
-		}
-		
-		 .dialog-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: none;
-        }
-
-        .dialog-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-        }
-		
-		.button-container {
-			display: flex;
-		}
-
-		.button-container button {
-			margin-right: 10px; /* 设置按钮之间的间距 */
-		}
-		
-		.full-width-image {
-			width: 95%;
-				height: auto;
-				max-height: 550px; /* 设置图片的最大高度 */
-				display: block;
-				margin: 0;
-				padding-left: 80px;
-				padding-top: 100px;
-				object-fit: cover; /* 确保图片在缩放时保持其宽高比 */
-				position: relative; /* 确保图片在父容器内定位 */
-				z-index: 1; /* 设置z-index以确保其在最下面 */
-				margin-bottom: 50px;
-		}
-
-		.full-width-image-title {
-			width: 20%; /* 确保图片宽度适应屏幕宽度 */
-			max-height: 100px;
-			height: auto;
-			display: block;
-			margin: 0 auto; /* 水平居中对齐 */
-			object-fit: cover;
-			position: fixed;
-			top: 25px;
-			left: 0;
-			right: 0;
-			background-color: #fff;
-			transition: transform 0.3s ease; /* 平滑过渡 */
-			z-index: 3;
-		}
-		.fixed-background {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100px; /* 固定的高度 */
-			background-color: #fff; /* 背景颜色 */
-			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); /* 可选阴影效果 */
-			z-index: 3;
-		}
-
-		.shadow-line {
-			position: fixed;
-			top: 100px;
-			left: 0;
-			width: 100%;
-			height: 1px;
-			box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
-			background-color: #fff;
-			z-index: 3;
-		}
-		
-		 .input-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .input-container i {
-            background-color: #4a2b1e;
-            color: white;
-            padding: 10px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-		.input-container label {
-            font-size: 1em; /* 增加字体大小 */
-            color: #333; /* 改变文本颜色 */
-            margin-right: 10px;
-        }
-        .input-container input,
-        .input-container textarea {
-            flex: 1;
-            padding: 10px;
-            font-size: 1em; /* 设置输入框字体大小 */
-        }
-		
-		p i {
-			background-color: #4a2b1e;
-			color: white;
-			padding: 5px;
-			border-radius: 50%;
-			margin-right: 10px;
-		}
-		.large-text {
-			font-size: 1.5em; /* 这里可以根据需要调整字体大小 */
-		}
-		
-		 .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 10px;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-        }
-
-
-
-
-
-
-
 		
 
 
@@ -1547,184 +988,69 @@ function updateMessageContentAndTagsnewimage(messageRef, content, tags, editDial
     
 </head>
 <body>
-	<div class="fixed-background"></div> <!-- 固定白色背景区域 -->
-    <img src="https://imgur.com/Z9EYazU.png" alt="Full Width Image" class="full-width-image-title">
-	<div class="shadow-line"></div> <!-- 阴影线 -->
-    <img src="https://imgur.com/fVH42uz.png" alt="Full Width Image" class="full-width-image">
-	
-	
-	
-	
-	
 
-	
   <div class="row">
     <div class="container">
-        <h1>新增留言板</h1>
+        <h1>新增穿著札記</h1>
 		<div class="row">
-		<form id="messageForm">
-			<div class="input-container">
-				<i class="fas fa-heading"></i>
-				<label for="titleInput">標題：</label>
-				<input type="text" id="titleInput" name="titleInput"><br><br>
-			 </div>
-			
-			
-			 <div class="input-container">
-				<i class="fas fa-align-left"></i>
-				<label for="contentInput">内容：</label>
-				<textarea id="contentInput" name="contentInput"></textarea><br><br>
-			</div>
-			<!--<label for="dateInput">日期:</label>
-			<input type="date" id="dateInput" name="dateInput"><br><br>-->
-			
-			
-			<div class="input-container">
-				<i class="fas fa-image"></i>
-				<label for="imageInput">上傳圖片：</label>
-				<input type="file" id="imageInput" name="imageInput"  multiple><br><br>
-			</div>
-			<div id="uploadedImagesContainer">
-				<!-- 这里是上传的图片显示的区域，初始时可能为空 -->
-			</div>
-
-			<div class="input-container">
-				<i class="fas fa-tags"></i>
-				<label for="tagsInput">Tags(請以#開頭輸入)：</label>
-				<input type="text" id="tagsInput" name="tagsInput">
-			</div>
-			<ul id="tagsList" style="display: none;">
-				<li>永續</li>
-				<li>環保</li>
-				<li>環保材質</li>
-				<li>短褲</li>
-				<li>長褲</li>
-				<li>牛仔褲</li>
-				<li>寬褲</li>
-				<li>T恤</li>
-				<li>大學T</li>
-				<li>帽T</li>
-				<li>洋裝</li>
-				<li>帽子</li>
-			</ul><br>
-
-			
-			<!-- <input type="submit" id="submitButton" value="提交"> -->
-			<button type="submit" id="submitButton">提交</button>
-		</form>
-
-        </div>
-    </div>
-	
-	<div class="container">
-        <h1>留言板</h1>
-		<button type="submit" id="showAllMessagesButton">顯示全部留言</button>
-
-		<div id="messages"></div>
-		<div class="row"></div> <!-- 插入空白的 div 元素 -->
-		<form id="commentForm"> 		
-		</form>
-	</div>
-	
-	 <!-- 定义对话框容器 -->
-	 
-	   <div id="editDialog" class="dialog-overlay">
-    <div class="dialog-content">
-        <h2>編輯留言</h2>
-        <form id="editForm">
-            <label for="content">内容：</label><br>
-            <textarea id="content" name="content"></textarea><br>
-            <label for="tags">標籤：</label><br>
-            <input type="text" id="tags" name="tags"><br>
-            <label for="image">選擇要重新上傳的圖片：</label><br>
-            <input type="file" id="image" name="image" multiple><br>
-            <!-- 图片容器 -->
-            <div id="imageContainer"></div> <!-- 这里将用来显示图片链接 -->
-            <div style="display: flex; justify-content: space-between;">
-				<button type="submit" style="background-color: green;">保存修改</button>
-				<div style="width: 20px;"></div> <!-- 添加空的 div 元素 -->
-				<button type="button" id="closeDialogButton" style="background-color: red;">關閉</button>
-			</div>
-
+		<form id="messageForm" class="col s12">
+            <input type="text" id="titleInput" placeholder="標題" required>
+            <input type="date" id="dateInput" required>
+			<button id="showSelectBtn">選擇地區</button>
+			<select id="countySelect" style="display:none;" required>
+				<option value="" disabled selected>請選擇縣市-地區</option>
+				<!-- 在這裡動態生成縣市選項 -->
+			</select>
+			<div id="airTemperatureDisplay"></div>
+			<div class="row"></div> <!-- 插入空白的 div 元素 -->
+            <textarea id="contentInput" placeholder="內文" required></textarea>
+			<button id="selectImageButton">選擇圖片</button>
+			<div class="row"></div> <!-- 插入空白的 div 元素 -->
+            <button type="submit">儲存</button>
         </form>
+        </div>
+        <div id="imageList"></div>   
+        <div id="messages"></div>
     </div>
+	<div class="row"></div> <!-- 插入空白的 div 元素 -->
+	<!-- 日记显示区域 -->
+	<div class="container">
+	<h1>穿著札記</h1>
+     <div id="journalList"></div>
+	 </div>
+	 <!-- 模态对话框 -->
+	 
+		<div id="myModal" class="modal">
+		  <div class="modal-content">
+			<span class="close">&times;</span>
+			<input type="text" id="newContentInput" placeholder="請輸入新的內文">
+			<button id="showSelectBtn2">選擇地區</button>
+			<select id="countySelect2" style="display:none;" required>
+				<option value="" disabled selected>請選擇縣市-地區</option>
+				<!-- 在這裡動態生成縣市選項 -->
+			</select>
+			<div id="airTemperatureDisplay2" style="color: white;"></div>
+			<div class="row"></div> <!-- 插入空白的 div 元素 -->
+			<button id="modifyImageButton">修改衣服圖片</button> <!-- 添加 id -->
+			<div class="row"></div> <!-- 插入空白的 div 元素 -->
+			<button id="confirmButton">確認修改</button> <!-- 添加 id -->
+			<div id="imageList2"></div>
+		  </div>
+		</div>
+
+
+		
+
+
+	 
+	<!-- 在 HTML 中新增彈出式視窗的 HTML 結構 -->
+	<div id="imageModal" class="modal">
+		<span class="close">&times;</span>
+		<img class="modal-content" id="modalImage">
+	</div>
 </div>
 
 
-	
-<script>
-    // 等待文档加载完成
-    document.addEventListener("DOMContentLoaded", function() {
-        // 获取对话框和关闭按钮的引用
-        const editDialog = document.getElementById('editDialog');
-        const closeDialogButton = document.getElementById('closeDialogButton');
-
-        // 检查元素是否存在
-        if (editDialog && closeDialogButton) {
-            // 添加事件监听器，当点击关闭按钮时关闭对话框
-            closeDialogButton.addEventListener('click', function() {
-                closeEditDialog();
-            });
-
-            // 添加事件监听器，当点击对话框外部时关闭对话框
-            editDialog.addEventListener('click', function(event) {
-                // 检查点击的是不是对话框外部
-                if (event.target === editDialog) {
-                    closeEditDialog();
-                }
-            });
-        } else {
-            console.error('editDialog 或 closeDialogButton 为 null');
-        }
-
-        // 定义关闭对话框的函数
-        function closeEditDialog() {
-            editDialog.style.display = 'none';
-        }
-		
-		
-		
-		
-    });
-</script>
-    <script>
-        const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 替????的 LINE 用? ID
-
-	   // const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
-	const apiUrl = 'https://my-project-chenyihsiu.vercel.app';
-
-        async function fetchUserProfile(userId) {
-	    try {
-	        const response = await fetch(apiUrl + '/api/user-profile/' + encodeURIComponent(userId));
-	        if (!response.ok) {
-	            throw new Error('Network response was not ok.');
-	        }
-	        return await response.json();
-	    } catch (error) {
-	        console.error('Error fetching user profile:', error);
-	        return null;
-	    }
-	}
-
-
-
-	    function getTagsAsLinks(tags) {
-		    return tags.map(tag => `<a href="#" class="tag-link">${tag}</a>`).join(', ');
-		}
-		
-		function handleCommentSubmit(event, messageInfo, userId, db, commentContent) {
-		    // 处理评论提交的逻辑
-		    console.log('Comment submitted for message:', messageInfo.title, 'by user:', userId);
-		    // 示例代码：这里可以将评论保存到数据库
-		}
-		
-		// 点击标签过滤消息的示例函数
-		function filterMessagesByTag(tag) {
-		    console.log('Filtering messages by tag:', tag);
-		    // 示例代码：这里可以根据标签过滤消息
-}
-    </script>
 
     <hr />  
     <div>LINE版本: <span id="getLineVersion"></span></div>
