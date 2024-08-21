@@ -155,7 +155,7 @@
                         document.getElementById("getProfileUserId").innerHTML = profile.userId;
 						//const userId = document.getElementById("getProfileUserId").innerHTML;
 						const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
-						//displayJournals(userId);
+						displayJournals(userId);
                         document.getElementById("getProfilePictureUrl").innerHTML = profile.pictureUrl;
                     })
                     .catch((err) => {
@@ -173,10 +173,6 @@
                     alert(JSON.stringify(err));
                 });
 
-		 window.onload = function() {
-			 const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
-		    displayJournals(userId);
-		};
 
 				
 				// 获取日记数据并显示
