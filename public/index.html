@@ -378,261 +378,6 @@ let globalMessageInfo = {}; // 在这里定义全局变量
 const db = firebase.firestore();
 const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 假设用户ID为固定值
 
-<!-- async function displayMessages() { -->
-    <!-- try { -->
-        <!-- console.log('Fetching messages from the database...'); -->
-        <!-- // 获取留言板消息的查询快照 -->
-        <!-- const querySnapshot = await db.collection('project').doc('messages').collection('messages').get(); -->
-        <!-- console.log('Messages fetched successfully:', querySnapshot.docs.length, 'messages found.'); -->
-
-        <!-- // 清空之前显示的留言 -->
-        <!-- const messagesContainer = document.getElementById('messages'); -->
-        <!-- messagesContainer.innerHTML = ''; -->
-
-        <!-- // 遍历每条留言并渲染到 HTML 页面上 -->
-		<!-- querySnapshot.forEach((doc, index) => { -->
-			<!-- console.log('Rendering message:', doc.id); -->
-			<!-- const message = doc.data(); // 获取留言数据 -->
-
-			<!-- // 将时间转换为格式化的字符串 -->
-			<!-- const formattedTime = message.time.toDate().toLocaleString(); // 将时间转换为本地时间格式的字符串 -->
-
-			<!-- // 检查并处理标签是否为数组 -->
-			<!-- const tags = Array.isArray(message.tags) ? message.tags.join(', ') : ''; // 如果 message.tags 不是数组，则将其置为空字符串 -->
-
-			<!-- // 构建留言的 HTML 元素 -->
-			<!-- let messageElement = '<div class="message">'; -->
-			<!-- messageElement += '<p><h4><strong>標題:</strong> ' + message.title + '</h4></p>'; -->
-			<!-- messageElement += '<p><strong>名稱:</strong> ' + message.userId + '</p>'; -->
-			<!-- messageElement += '<p><strong>時間:</strong> ' + formattedTime + '</p>'; -->
-			<!-- messageElement += '<p><strong>內文:</strong> ' + message.content + '</p>'; -->
-			<!-- messageElement += '<p><strong>標籤:</strong> ' + tags + '</p>'; -->
-			<!-- messageElement += '<p><strong>圖片:</strong></p>'; -->
-			<!-- messageElement += '<ul>'; -->
-			<!-- Object.keys(message).filter(key => key.startsWith('imageUrl_')).forEach(key => { -->
-				<!-- messageElement += '<li><img src="' + message[key] + '" style="width: 200px; height: 200px;"></li>'; -->
-			<!-- }); -->
-			<!-- messageElement += '</ul>'; -->
-
-			<!-- // 添加修改和删除按钮（如果用户ID匹配） -->
-			<!-- if (message.userId === userId) { -->
-				<!-- // 构建修改按钮 -->
-				<!-- const editButton = document.createElement('button'); -->
-				<!-- editButton.textContent = '修改'; // 设置按钮的文本内容 -->
-
-				<!-- messageElement += editButton.outerHTML; -->
-
-				<!-- // 构建删除按钮 -->
-				<!-- const deleteButton = document.createElement('button'); -->
-				<!-- deleteButton.textContent = '刪除'; // 设置按钮的文本内容 -->
-
-				<!-- messageElement += deleteButton.outerHTML; -->
-			<!-- } -->
-
-			<!-- // 创建评论容器和评论表单 -->
-			<!-- const commentContainerId = 'comments-' + doc.id; -->
-			<!-- messageElement += '<div id="' + commentContainerId + '"></div>'; // 创建评论容器 -->
-			<!-- const commentForm = '<form class="commentForm" data-message-id="' + doc.id + '">' + -->
-									<!-- '<input type="text" name="commentContent" placeholder="请输入评论内容">' + -->
-									<!-- '<button type="submit" class="submitCommentButton">提交评论</button>' + -->
-								<!-- '</form>'; -->
-
-			<!-- // 将留言元素和评论表单添加到页面上 -->
-			<!-- messagesContainer.innerHTML += messageElement + commentForm; -->
-			<!-- // 添加分隔线 -->
-			<!-- messagesContainer.insertAdjacentHTML('beforeend', '<hr>'); -->
-
-			<!-- // 将留言的相关信息存储到全局变量中 -->
-			<!-- globalMessageInfo[doc.id] = {userId: message.userId, title: message.title}; -->
-			
-			<!-- // 添加事件监听器以便在留言表单提交时重新加载留言和评论 -->
-			<!-- const commentForms = document.querySelectorAll('.commentForm'); -->
-			<!-- commentForms.forEach(commentForm => { -->
-				<!-- commentForm.addEventListener('submit', function(event) { -->
-					<!-- event.preventDefault(); -->
-					<!-- const commentContent = commentForm.querySelector('input[name="commentContent"]').value; -->
-					<!-- const messageId = commentForm.getAttribute('data-message-id'); -->
-					<!-- const messageInfo = globalMessageInfo[messageId]; -->
-
-					<!-- // 检查留言信息是否存在 -->
-					<!-- if (messageInfo) { -->
-						<!-- // 调用处理评论提交的函数，并传递留言的相关信息和评论内容 -->
-						<!-- handleCommentSubmit(event, messageInfo, userId, db, commentContent); -->
-					<!-- } else { -->
-						<!-- console.error('Failed to find message info.'); -->
-					<!-- } -->
-				<!-- }); -->
-			<!-- }); -->
-
-
-			<!-- // 渲染每个留言的评论 -->
-			<!-- displayComments(doc.id, commentContainerId); // 根据留言的ID显示评论，传入评论容器的ID -->
-		<!-- }); -->
-
-    <!-- } catch (error) { -->
-        <!-- console.error('Error fetching messages:', error); -->
-    <!-- } -->
-<!-- } -->
-
-<!-- async function displayMessages() { -->
-    <!-- try { -->
-        <!-- console.log('Fetching messages from the database...'); -->
-        <!-- // 获取留言板消息的查询快照 -->
-        <!-- const querySnapshot = await db.collection('project').doc('messages').collection('messages').get(); -->
-        <!-- console.log('Messages fetched successfully:', querySnapshot.docs.length, 'messages found.'); -->
-
-        <!-- // 清空之前显示的留言 -->
-        <!-- const messagesContainer = document.getElementById('messages'); -->
-        <!-- messagesContainer.innerHTML = ''; -->
-
-        <!-- // 遍历每条留言并渲染到 HTML 页面上 -->
-        <!-- querySnapshot.forEach((doc, index) => { -->
-            <!-- console.log('Rendering message:', doc.id); -->
-            <!-- const message = doc.data(); // 获取留言数据 -->
-
-            <!-- // 将时间转换为格式化的字符串 -->
-            <!-- const formattedTime = message.time.toDate().toLocaleString(); // 将时间转换为本地时间格式的字符串 -->
-
-            <!-- // 构建留言的 HTML 元素 -->
-            <!-- let messageElement = '<div class="message">'; -->
-            <!-- <!-- messageElement += '<p><h4><strong>標題:</strong> ' + message.title + '</h4></p>'; --> -->
-			
-			<!-- // 构建标题和按钮容器 -->
-			<!-- const titleAndButtonsContainer = document.createElement('div'); -->
-			<!-- titleAndButtonsContainer.style.display = 'flex'; // 设置容器为弹性布局 -->
-			<!-- titleAndButtonsContainer.style.alignItems = 'center'; // 垂直居中对齐 -->
-
-			<!-- // 添加标题 -->
-			<!-- const titleElement = document.createElement('h4'); -->
-			<!-- titleElement.innerHTML = '<strong>標題:</strong> ' + message.title; -->
-			<!-- titleElement.style.width = '2000px'; // 设置标题的宽度 -->
-			<!-- titleAndButtonsContainer.appendChild(titleElement); -->
-			
-            <!-- // 添加修改和删除按钮（如果用户ID匹配） -->
-            <!-- if (message.userId === userId) { -->
-                <!-- <!-- // 构建修改按钮 --> -->
-                <!-- <!-- const editButton = document.createElement('button'); --> -->
-                <!-- <!-- editButton.textContent = '修改'; // 设置按钮的文本内容 --> -->
-				<!-- <!-- editButton.style.backgroundColor = 'green'; // 设置修改按钮的背景颜色 --> -->
-
-                <!-- <!-- messageElement += editButton.outerHTML; --> -->
-
-                <!-- <!-- // 构建删除按钮 --> -->
-                <!-- <!-- const deleteButton = document.createElement('button'); --> -->
-                <!-- <!-- deleteButton.textContent = '刪除'; // 设置按钮的文本内容 --> -->
-				<!-- <!-- deleteButton.style.backgroundColor = 'red'; // 设置删除按钮的背景颜色 --> -->
-
-                <!-- <!-- messageElement += deleteButton.outerHTML; --> -->
-				
-				<!-- // 添加修改按钮 -->
-				<!-- const editButton = document.createElement('button'); -->
-				<!-- //editButton.textContent = '修改'; // 设置按钮的文本内容 -->
-				
-				<!-- const icon = document.createElement('i'); -->
-				<!-- icon.className = 'fas fa-edit'; // Font Awesome 图标类 -->
-				<!-- icon.style.marginRight = '8px'; // 设置图标右边距 -->
-				
-				<!-- const textNode = document.createTextNode('修改'); -->
-				<!-- editButton.appendChild(icon); -->
-				<!-- editButton.appendChild(textNode); -->
-				
-				<!-- editButton.style.backgroundColor = '#007bff'; // 设置修改按钮的背景颜色 -->
-				<!-- editButton.style.marginLeft = 'auto'; // 将修改按钮靠右对齐 -->
-				<!-- titleAndButtonsContainer.appendChild(editButton); -->
-
-				<!-- // 添加删除按钮 -->
-				<!-- const deleteButton = document.createElement('button'); -->
-				
-				<!-- const icon2 = document.createElement('i'); -->
-				<!-- icon2.className = 'fas fa-trash'; // Font Awesome 图标类 -->
-				<!-- icon2.style.marginRight = '8px'; // 设置图标右边距 -->
-				
-				<!-- const textNode2 = document.createTextNode('刪除'); -->
-				<!-- deleteButton.appendChild(icon2); -->
-				<!-- deleteButton.appendChild(textNode2); -->
-				
-				<!-- //deleteButton.textContent = '刪除'; // 设置按钮的文本内容 -->
-				<!-- deleteButton.style.backgroundColor = 'red'; // 设置删除按钮的背景颜色 -->
-				<!-- deleteButton.style.marginLeft = '10px'; // 设置删除按钮与修改按钮之间的间距 -->
-				<!-- titleAndButtonsContainer.appendChild(deleteButton); -->
-            <!-- } -->
-			
-			<!-- // 将标题和按钮容器添加到消息元素中 -->
-			<!-- messageElement += '<p>'; -->
-			<!-- messageElement += titleAndButtonsContainer.outerHTML; -->
-			<!-- messageElement += '</p>'; -->
-            <!-- messageElement += '<p><i class="fas fa-user"></i><strong></strong> ' + message.userId + '</p>'; -->
-			<!-- messageElement += '<p><i class="fas fa-clock"></i><strong></strong> ' + formattedTime + '</p>'; -->
-            
-			<!-- messageElement += '<p><i class="fas fa-align-left"></i><strong></strong> <span class="large-text">' + message.content + '</span></p>'; -->
-
-            <!-- messageElement += '<p><i class="fas fa-tags"></i><strong></strong>' + getTagsAsLinks(message.tags) + '</p>'; -->
-            <!-- messageElement += '<p><i class="fas fa-image"></i><strong></strong></p>'; -->
-            <!-- messageElement += '<ul>'; -->
-            <!-- Object.keys(message).filter(key => key.startsWith('imageUrl_')).forEach(key => { -->
-                <!-- messageElement += '<li><img src="' + message[key] + '" style="width: 200px; height: 200px;"></li>'; -->
-            <!-- }); -->
-            <!-- messageElement += '</ul>'; -->
-
-
-            <!-- // 创建评论容器和评论表单 -->
-            <!-- const commentContainerId = 'comments-' + doc.id; -->
-            <!-- messageElement += '<div id="' + commentContainerId + '"></div>'; // 创建评论容器 -->
-            <!-- const commentForm = '<form class="commentForm" data-message-id="' + doc.id + '">' + -->
-                        <!-- '<div style="display: flex; align-items: center;">' + -->
-                            <!-- '<input type="text" name="commentContent" placeholder="請输入評論内容" style="width: 1600px; margin-right: 10px; border: 2px solid #ccc; border-radius: 5px; padding: 5px;">' + -->
-                            <!-- '<button type="submit" class="submitCommentButton">提交評論</button>' + -->
-                        <!-- '</div>' + -->
-                    <!-- '</form>'; -->
-
-
-
-			
-
-            <!-- // 将留言元素和评论表单添加到页面上 -->
-            <!-- messagesContainer.innerHTML += messageElement + commentForm; -->
-            <!-- // 添加分隔线 -->
-            <!-- messagesContainer.insertAdjacentHTML('beforeend', '<hr>'); -->
-
-            <!-- // 将留言的相关信息存储到全局变量中 -->
-            <!-- globalMessageInfo[doc.id] = {userId: message.userId, title: message.title}; -->
-
-            <!-- // 添加事件监听器以便在留言表单提交时重新加载留言和评论 -->
-            <!-- const commentForms = document.querySelectorAll('.commentForm'); -->
-            <!-- commentForms.forEach(commentForm => { -->
-                <!-- commentForm.addEventListener('submit', function(event) { -->
-                    <!-- event.preventDefault(); -->
-                    <!-- const commentContent = commentForm.querySelector('input[name="commentContent"]').value; -->
-                    <!-- const messageId = commentForm.getAttribute('data-message-id'); -->
-                    <!-- const messageInfo = globalMessageInfo[messageId]; -->
-
-                    <!-- // 检查留言信息是否存在 -->
-                    <!-- if (messageInfo) { -->
-                        <!-- // 调用处理评论提交的函数，并传递留言的相关信息和评论内容 -->
-                        <!-- handleCommentSubmit(event, messageInfo, userId, db, commentContent); -->
-                    <!-- } else { -->
-                        <!-- console.error('Failed to find message info.'); -->
-                    <!-- } -->
-                <!-- }); -->
-            <!-- }); -->
-			
-			<!-- displayComments(doc.id, commentContainerId); // 根据留言的ID显示评论，传入评论容器的ID -->
-        <!-- }); -->
-
-        <!-- // 添加标签点击事件监听器 -->
-        <!-- const tagsLinks = document.querySelectorAll('.tag-link'); -->
-        <!-- tagsLinks.forEach(tagLink => { -->
-            <!-- tagLink.addEventListener('click', function(event) { -->
-                <!-- event.preventDefault(); -->
-                <!-- const tag = tagLink.textContent.trim(); -->
-                <!-- filterMessagesByTag(tag); -->
-            <!-- }); -->
-        <!-- }); -->
-
-    <!-- } catch (error) { -->
-        <!-- console.error('Error fetching messages:', error); -->
-    <!-- } -->
-<!-- } -->
 
 async function displayMessages() {
     try {
@@ -641,108 +386,153 @@ async function displayMessages() {
         console.log('Messages fetched successfully:', querySnapshot.docs.length, 'messages found.');
 
         const messagesContainer = document.getElementById('messages');
-        messagesContainer.innerHTML = '';
+        messagesContainer.innerHTML = ''; // 清空消息容器
 
-        // 遍历每条留言并渲染到 HTML 页面上
         for (const doc of querySnapshot.docs) {
             console.log('Rendering message:', doc.id);
             const message = doc.data();
 
             const formattedTime = message.time.toDate().toLocaleString();
 
-            // 构建标题和按钮容器
+            // 创建消息容器
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+
+            // 标题和按钮容器
             const titleAndButtonsContainer = document.createElement('div');
             titleAndButtonsContainer.style.display = 'flex';
             titleAndButtonsContainer.style.alignItems = 'center';
 
+            // 标题
             const titleElement = document.createElement('h4');
             titleElement.innerHTML = '<strong>標題:</strong> ' + message.title;
             titleElement.style.width = '2000px';
             titleAndButtonsContainer.appendChild(titleElement);
 
-            // 如果 userId 存在，则获取用户信息
-            let userInfoHtml = '<p><i class="fas fa-user"></i><strong></strong> ' + message.userId + '</p>';
-            try {
-                const userProfile = await fetchUserProfile(message.userId); // 获取用户信息
-                if (userProfile) {
-                    const { pictureUrl, displayName } = userProfile;
-                    userInfoHtml = '<p><img src="' + pictureUrl + '" alt="User Avatar" class="avatar" /> <strong>' + displayName + '</strong>(' + message.userId+ ')</p>' ;
-
-                }
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-            }
-
+            // 如果用户是消息的作者，添加编辑和删除按钮
             if (message.userId === userId) {
                 const editButton = document.createElement('button');
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-edit';
-                icon.style.marginRight = '8px';
-                const textNode = document.createTextNode('修改');
-                editButton.appendChild(icon);
-                editButton.appendChild(textNode);
+                editButton.innerHTML = '<i class="fas fa-edit" style="margin-right: 8px;"></i>修改';
                 editButton.style.backgroundColor = '#007bff';
                 editButton.style.marginLeft = 'auto';
                 titleAndButtonsContainer.appendChild(editButton);
 
                 const deleteButton = document.createElement('button');
-                const icon2 = document.createElement('i');
-                icon2.className = 'fas fa-trash';
-                icon2.style.marginRight = '8px';
-                const textNode2 = document.createTextNode('刪除');
-                deleteButton.appendChild(icon2);
-                deleteButton.appendChild(textNode2);
+                deleteButton.innerHTML = '<i class="fas fa-trash" style="margin-right: 8px;"></i>刪除';
                 deleteButton.style.backgroundColor = 'red';
                 deleteButton.style.marginLeft = '10px';
                 titleAndButtonsContainer.appendChild(deleteButton);
             }
 
-            let messageElement = '<div class="message">';
-            messageElement += '<p>${titleAndButtonsContainer.outerHTML}</p>';
-            messageElement += userInfoHtml; // 插入用户信息
-            messageElement += '<p><i class="fas fa-clock"></i><strong></strong> ' + formattedTime + '</p>';
-            messageElement += '<p><i class="fas fa-align-left"></i><strong></strong> <span class="large-text">' + message.content + '</span></p>';
-            messageElement += '<p><i class="fas fa-tags"></i><strong></strong>' + getTagsAsLinks(message.tags) + '</p>';
-            messageElement += '<p><i class="fas fa-image"></i><strong></strong></p>';
-            messageElement += '<ul>';
+            messageElement.appendChild(titleAndButtonsContainer);
+
+            // 用户信息
+            const userInfoElement = document.createElement('p');
+            try {
+                const userProfile = await fetchUserProfile(message.userId);
+                if (userProfile) {
+                    const { pictureUrl, displayName } = userProfile;
+                    userInfoElement.innerHTML = `<img src="${pictureUrl}" alt="User Avatar" class="avatar" /> <strong>${displayName}</strong> (${message.userId})`;
+                } else {
+                    userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
+            }
+            messageElement.appendChild(userInfoElement);
+
+            // 时间
+            const timeElement = document.createElement('p');
+            timeElement.innerHTML = `<strong></strong> ${formattedTime}`;
+	    timeElement.style.marginLeft = '55px';
+	    timeElement.style.fontSize = '12px'; // 设置文字大小为10像素
+            messageElement.appendChild(timeElement);
+
+            // 内容
+            const contentElement = document.createElement('p');
+	    contentElement.style.marginLeft = '55px';
+            contentElement.innerHTML = ` <strong></strong> <span class="large-text">${message.content}</span>`;
+            messageElement.appendChild(contentElement);
+
+            // 标签
+            const tagsElement = document.createElement('p');
+            tagsElement.innerHTML = `<strong></strong> ${message.tags ? getTagsAsLinks(message.tags) : ''}`;
+	    tagsElement.style.marginLeft = '55px';
+            messageElement.appendChild(tagsElement);
+
+            // 图片
+            const imagesElement = document.createElement('p');
+            imagesElement.innerHTML = '';
+	    imagesElement.style.marginLeft = '55px';
+            messageElement.appendChild(imagesElement);
+
+            const imagesList = document.createElement('ul');
             Object.keys(message).filter(key => key.startsWith('imageUrl_')).forEach(key => {
-                messageElement += '<li><img src="' + message[key] + '" style="width: 200px; height: 200px;"></li>';
+                const listItem = document.createElement('li');
+                const img = document.createElement('img');
+                img.src = message[key];
+                img.style.width = '200px';
+                img.style.height = '220px';
+		img.style.marginLeft = '60px'; // 图片向右移动 100px
+                listItem.appendChild(img);
+                imagesList.appendChild(listItem);
             });
-            messageElement += '</ul>';
+            messageElement.appendChild(imagesList);
 
-            const commentContainerId = 'comments-' + doc.id;
-            messageElement += '<div id="' + commentContainerId + '"></div>';
-            const commentForm = '<form class="commentForm" data-message-id="' + doc.id + '">' +
-                '<div style="display: flex; align-items: center;">' +
-                '<input type="text" name="commentContent" placeholder="請输入評論内容" style="width: 1600px; margin-right: 10px; border: 2px solid #ccc; border-radius: 5px; padding: 5px;">' +
-                '<button type="submit" class="submitCommentButton">提交評論</button>' +
-                '</div>' +
-                '</form>';
+            // 评论容器
+            const commentContainer = document.createElement('div');
+            commentContainer.id = 'comments-' + doc.id;
+            messageElement.appendChild(commentContainer);
 
-            messagesContainer.innerHTML += messageElement + commentForm;
-            messagesContainer.insertAdjacentHTML('beforeend', '<hr>');
+            // 评论表单
+            const commentForm = document.createElement('form');
+            commentForm.classList.add('commentForm');
+            commentForm.setAttribute('data-message-id', doc.id);
 
-            globalMessageInfo[doc.id] = { userId: message.userId, title: message.title };
+            const commentDiv = document.createElement('div');
+            commentDiv.style.display = 'flex';
+            commentDiv.style.alignItems = 'center';
 
-            const commentForms = document.querySelectorAll('.commentForm');
-            commentForms.forEach(commentForm => {
-                commentForm.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    const commentContent = commentForm.querySelector('input[name="commentContent"]').value;
-                    const messageId = commentForm.getAttribute('data-message-id');
-                    const messageInfo = globalMessageInfo[messageId];
+            const commentInput = document.createElement('input');
+            commentInput.type = 'text';
+            commentInput.name = 'commentContent';
+            commentInput.placeholder = '請输入評論内容';
+            commentInput.style.marginRight = '10px';
+            commentInput.style.border = '2px solid #ccc';
+            commentInput.style.borderRadius = '5px';
+            commentInput.style.padding = '5px';
+	    commentInput.style.width = '1600px';
 
-                    if (messageInfo) {
-                        handleCommentSubmit(event, messageInfo, userId, db, commentContent);
-                    } else {
-                        console.error('Failed to find message info.');
-                    }
-                });
+            const submitCommentButton = document.createElement('button');
+            submitCommentButton.type = 'submit';
+            submitCommentButton.classList.add('submitCommentButton');
+            submitCommentButton.textContent = '提交評論';
+
+            commentDiv.appendChild(commentInput);
+            commentDiv.appendChild(submitCommentButton);
+            commentForm.appendChild(commentDiv);
+            messageElement.appendChild(commentForm);
+
+            // 添加评论表单的事件监听器
+            commentForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const commentContent = commentInput.value.trim();
+                if (commentContent) {
+                    const messageInfo = { userId: message.userId, title: message.title };
+                    handleCommentSubmit(event, messageInfo, userId, db, commentContent);
+                } else {
+                    alert('評論内容不能为空');
+                }
             });
 
-            displayComments(doc.id, commentContainerId);
+            messagesContainer.appendChild(messageElement);
+
+            // 显示评论
+            displayComments(doc.id, commentContainer.id);
         }
 
+        // 为标签链接添加事件监听器
         const tagsLinks = document.querySelectorAll('.tag-link');
         tagsLinks.forEach(tagLink => {
             tagLink.addEventListener('click', function (event) {
@@ -759,6 +549,10 @@ async function displayMessages() {
 
 
 
+		 
+
+
+
 // 将标签数组转换为超链接列表
 function getTagsAsLinks(tagsArray) {
     if (!Array.isArray(tagsArray)) {
@@ -772,7 +566,6 @@ function getTagsAsLinks(tagsArray) {
     return tagsHTML;
 }
 
-// 根据标签过滤留言并重新显示
 async function filterMessagesByTag(tag) {
     try {
         const querySnapshot = await db.collection('project').doc('messages').collection('messages').where('tags', 'array-contains', tag).get();
@@ -783,142 +576,164 @@ async function filterMessagesByTag(tag) {
         messagesContainer.innerHTML = '';
 
         // 遍历每条留言并渲染到 HTML 页面上
-        querySnapshot.forEach((doc, index) => {
+        for (const doc of querySnapshot.docs) {
             console.log('Rendering message:', doc.id);
             const message = doc.data(); // 获取留言数据
 
             // 将时间转换为格式化的字符串
             const formattedTime = message.time.toDate().toLocaleString(); // 将时间转换为本地时间格式的字符串
 
-            // 构建留言的 HTML 元素
-            let messageElement = '<div class="message">';
-            <!-- messageElement += '<p><h4><strong>標題:</strong> ' + message.title + '</h4></p>'; -->
-			
-			// 构建标题和按钮容器
-			const titleAndButtonsContainer = document.createElement('div');
-			titleAndButtonsContainer.style.display = 'flex'; // 设置容器为弹性布局
-			titleAndButtonsContainer.style.alignItems = 'center'; // 垂直居中对齐
+            // 创建消息容器
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
 
-			// 添加标题
-			const titleElement = document.createElement('h4');
-			titleElement.innerHTML = '<strong>標題:</strong> ' + message.title;
-			titleElement.style.width = '2000px'; // 设置标题的宽度
-			titleAndButtonsContainer.appendChild(titleElement);
-			
-            // 添加修改和删除按钮（如果用户ID匹配）
+            // 标题和按钮容器
+            const titleAndButtonsContainer = document.createElement('div');
+            titleAndButtonsContainer.style.display = 'flex';
+            titleAndButtonsContainer.style.alignItems = 'center';
+
+            // 标题
+            const titleElement = document.createElement('h4');
+            titleElement.innerHTML = '<strong>標題:</strong> ' + message.title;
+            titleElement.style.width = '2000px';
+            titleAndButtonsContainer.appendChild(titleElement);
+
+            // 如果用户是消息的作者，添加编辑和删除按钮
             if (message.userId === userId) {
-                <!-- // 构建修改按钮 -->
-                <!-- const editButton = document.createElement('button'); -->
-                <!-- editButton.textContent = '修改'; // 设置按钮的文本内容 -->
-				<!-- editButton.style.backgroundColor = 'green'; // 设置修改按钮的背景颜色 -->
+                const editButton = document.createElement('button');
+                editButton.innerHTML = '<i class="fas fa-edit" style="margin-right: 8px;"></i>修改';
+                editButton.style.backgroundColor = '#007bff';
+                editButton.style.marginLeft = 'auto';
+                titleAndButtonsContainer.appendChild(editButton);
 
-                <!-- messageElement += editButton.outerHTML; -->
-
-                <!-- // 构建删除按钮 -->
-                <!-- const deleteButton = document.createElement('button'); -->
-                <!-- deleteButton.textContent = '刪除'; // 设置按钮的文本内容 -->
-				<!-- deleteButton.style.backgroundColor = 'red'; // 设置删除按钮的背景颜色 -->
-
-                <!-- messageElement += deleteButton.outerHTML; -->
-				
-				// 添加修改按钮
-				const editButton = document.createElement('button');
-				editButton.textContent = '修改'; // 设置按钮的文本内容
-				editButton.style.backgroundColor = 'green'; // 设置修改按钮的背景颜色
-				editButton.style.marginLeft = 'auto'; // 将修改按钮靠右对齐
-				titleAndButtonsContainer.appendChild(editButton);
-
-				// 添加删除按钮
-				const deleteButton = document.createElement('button');
-				deleteButton.textContent = '刪除'; // 设置按钮的文本内容
-				deleteButton.style.backgroundColor = 'red'; // 设置删除按钮的背景颜色
-				deleteButton.style.marginLeft = '10px'; // 设置删除按钮与修改按钮之间的间距
-				titleAndButtonsContainer.appendChild(deleteButton);
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '<i class="fas fa-trash" style="margin-right: 8px;"></i>刪除';
+                deleteButton.style.backgroundColor = 'red';
+                deleteButton.style.marginLeft = '10px';
+                titleAndButtonsContainer.appendChild(deleteButton);
             }
-			// 将标题和按钮容器添加到消息元素中
-			messageElement += '<p>';
-			messageElement += titleAndButtonsContainer.outerHTML;
-			messageElement += '</p>';
-            messageElement += '<p><strong>名稱:</strong> ' + message.userId + '</p>';
-            messageElement += '<p><strong>時間:</strong> ' + formattedTime + '</p>';
-            messageElement += '<p><strong>內文:</strong> ' + message.content + '</p>';
-            messageElement += '<p><strong>標籤:</strong> ' + getTagsAsLinks(message.tags) + '</p>';
-            messageElement += '<p><strong>圖片:</strong></p>';
-            messageElement += '<ul>';
+
+            messageElement.appendChild(titleAndButtonsContainer);
+
+            // 用户信息
+            const userInfoElement = document.createElement('p');
+            try {
+                const userProfile = await fetchUserProfile(message.userId);
+                if (userProfile) {
+                    const { pictureUrl, displayName } = userProfile;
+                    userInfoElement.innerHTML = `<img src="${pictureUrl}" alt="User Avatar" class="avatar" /> <strong>${displayName}</strong> (${message.userId})`;
+                } else {
+                    userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+                userInfoElement.innerHTML = `<i class="fas fa-user"></i> <strong></strong> ${message.userId}`;
+            }
+            messageElement.appendChild(userInfoElement);
+
+            // 时间
+            const timeElement = document.createElement('p');
+            timeElement.innerHTML = `<strong></strong> ${formattedTime}`;
+	    timeElement.style.marginLeft = '55px';
+	    timeElement.style.fontSize = '10px'; // 设置文字大小为10像素
+            messageElement.appendChild(timeElement);
+
+            // 内容
+            const contentElement = document.createElement('p');
+            contentElement.innerHTML = `<strong></strong> <span class="large-text">${message.content}</span>`;
+	    contentElement.style.marginLeft = '55px';
+            messageElement.appendChild(contentElement);
+
+            // 标签
+            const tagsElement = document.createElement('p');
+            tagsElement.innerHTML = ` ${message.tags ? getTagsAsLinks(message.tags) : ''}`;
+	    tagsElement.style.marginLeft = '55px';
+            messageElement.appendChild(tagsElement);
+
+            // 图片
+            const imagesElement = document.createElement('p');
+            imagesElement.innerHTML = '';
+	    imagesElement.style.marginLeft = '55px';
+            messageElement.appendChild(imagesElement);
+
+            const imagesList = document.createElement('ul');
             Object.keys(message).filter(key => key.startsWith('imageUrl_')).forEach(key => {
-                messageElement += '<li><img src="' + message[key] + '" style="width: 200px; height: 200px;"></li>';
+                const listItem = document.createElement('li');
+                const img = document.createElement('img');
+                img.src = message[key];
+                img.style.width = '200px';
+                img.style.height = '200px';
+                listItem.appendChild(img);
+                imagesList.appendChild(listItem);
             });
-            messageElement += '</ul>';
+            messageElement.appendChild(imagesList);
 
-            // 添加修改和删除按钮（如果用户ID匹配）
-            //if (message.userId === userId) {
-                // 构建修改按钮
-               // const editButton = document.createElement('button');
-                //editButton.textContent = '修改'; // 设置按钮的文本内容
+            // 评论容器
+            const commentContainer = document.createElement('div');
+            commentContainer.id = 'comments-' + doc.id;
+            messageElement.appendChild(commentContainer);
 
-                //messageElement += editButton.outerHTML;
+            // 评论表单
+            const commentForm = document.createElement('form');
+            commentForm.classList.add('commentForm');
+            commentForm.setAttribute('data-message-id', doc.id);
 
-                // 构建删除按钮
-               // const deleteButton = document.createElement('button');
-               // deleteButton.textContent = '刪除'; // 设置按钮的文本内容
+            const commentDiv = document.createElement('div');
+            commentDiv.style.display = 'flex';
+            commentDiv.style.alignItems = 'center';
 
-               // messageElement += deleteButton.outerHTML;
-           // }
+            const commentInput = document.createElement('input');
+            commentInput.type = 'text';
+            commentInput.name = 'commentContent';
+            commentInput.placeholder = '請输入評論内容';
+            commentInput.style.marginRight = '10px';
+            commentInput.style.border = '2px solid #ccc';
+            commentInput.style.borderRadius = '5px';
+            commentInput.style.padding = '5px';
+            commentInput.style.width = '1600px';
 
-            // 创建评论容器和评论表单
-            const commentContainerId = 'comments-' + doc.id;
-            messageElement += '<div id="' + commentContainerId + '"></div>'; // 创建评论容器
-             const commentForm = '<form class="commentForm" data-message-id="' + doc.id + '">' +
-                        '<div style="display: flex; align-items: center;">' +
-                            '<input type="text" name="commentContent" placeholder="請输入評論内容" style="width: 1600px; margin-right: 10px; border: 2px solid #ccc; border-radius: 5px; padding: 5px;">' +
-                            '<button type="submit" class="submitCommentButton">提交評論</button>' +
-                        '</div>' +
-                    '</form>';
+            const submitCommentButton = document.createElement('button');
+            submitCommentButton.type = 'submit';
+            submitCommentButton.classList.add('submitCommentButton');
+            submitCommentButton.textContent = '提交評論';
 
-            // 将留言元素和评论表单添加到页面上
-            messagesContainer.innerHTML += messageElement + commentForm;
-            // 添加分隔线
-            messagesContainer.insertAdjacentHTML('beforeend', '<hr>');
+            commentDiv.appendChild(commentInput);
+            commentDiv.appendChild(submitCommentButton);
+            commentForm.appendChild(commentDiv);
+            messageElement.appendChild(commentForm);
 
-            // 将留言的相关信息存储到全局变量中
-            globalMessageInfo[doc.id] = {userId: message.userId, title: message.title};
-
-            // 添加事件监听器以便在留言表单提交时重新加载留言和评论
-            const commentForms = document.querySelectorAll('.commentForm');
-            commentForms.forEach(commentForm => {
-                commentForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    const commentContent = commentForm.querySelector('input[name="commentContent"]').value;
-                    const messageId = commentForm.getAttribute('data-message-id');
-                    const messageInfo = globalMessageInfo[messageId];
-
-                    // 检查留言信息是否存在
-                    if (messageInfo) {
-                        // 调用处理评论提交的函数，并传递留言的相关信息和评论内容
-                        handleCommentSubmit(event, messageInfo, userId, db, commentContent);
-                    } else {
-                        console.error('Failed to find message info.');
-                    }
-                });
+            // 添加评论表单的事件监听器
+            commentForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const commentContent = commentInput.value.trim();
+                if (commentContent) {
+                    const messageInfo = { userId: message.userId, title: message.title };
+                    handleCommentSubmit(event, messageInfo, userId, db, commentContent);
+                } else {
+                    alert('評論内容不能为空');
+                }
             });
-			
-			displayComments(doc.id, commentContainerId); // 根据留言的ID显示评论，传入评论容器的ID
-        });
 
-        // 添加标签点击事件监听器
+            messagesContainer.appendChild(messageElement);
+
+            // 显示评论
+            displayComments(doc.id, commentContainer.id);
+        }
+
+        // 为标签链接添加事件监听器
         const tagsLinks = document.querySelectorAll('.tag-link');
         tagsLinks.forEach(tagLink => {
-            tagLink.addEventListener('click', function(event) {
+            tagLink.addEventListener('click', function (event) {
                 event.preventDefault();
                 const tag = tagLink.textContent.trim();
                 filterMessagesByTag(tag);
             });
         });
+
     } catch (error) {
         console.error('Error filtering messages by tag:', error);
     }
 }
-
 
 
 
@@ -929,84 +744,88 @@ async function displayComments(messageId, commentContainerId) {
         console.log('Comments fetched successfully for message:', messageId, 'Total:', querySnapshot.docs.length);
 
         const commentsContainer = document.getElementById(commentContainerId);
-        commentsContainer.innerHTML = ''; // 清空之前显示的评论
-		
-		// 添加背景颜色以区隔评论显示区域
-        //commentsContainer.style.backgroundColor = '#f5f5f5'; // 设置背景颜色
-		//commentsContainer.style.border = '2px solid #ccc'; // 设置粗一点的外框
+        if (!commentsContainer) {
+            console.error('Comments container not found:', commentContainerId);
+            return;
+        }
 
-        querySnapshot.forEach((doc) => {
+        commentsContainer.innerHTML = '';
+
+        const userIds = querySnapshot.docs.map(doc => doc.data().userId);
+        console.log('User IDs:', userIds);  // 调试输出
+
+        const userProfiles = await Promise.all(userIds.map(userId => fetchUserProfile(userId)));
+        console.log('User profiles:', userProfiles);  // 调试输出
+
+        const userProfileMap = {};
+        userIds.forEach((userId, index) => {
+            userProfileMap[userId] = userProfiles[index];
+        });
+
+        console.log('User profile map:', userProfileMap); // 调试输出，检查 userProfileMap
+
+        for (const doc of querySnapshot.docs) {
             const commentData = doc.data();
             const formattedTime = commentData.time.toDate().toLocaleString();
-            let commentElement = '<div class="comment" style="border: 1px solid #ccc; background-color: #f5f5f5; margin-bottom: 10px; padding: 10px;" data-comment-id="' + doc.id + '">' +
-                        '<p><strong>用户ID:</strong> ' + commentData.userId + '</p>' +
-                        '<p><strong>時間:</strong> ' + formattedTime + '</p>' +
-                        '<p><strong>内容:</strong> ' + commentData.content + '</p>';
 
-            // 添加修改和删除按钮（如果评论是当前用户发布的）
+            // 获取用户资料
+            const userProfile = userProfileMap[commentData.userId] || { pictureUrl: '', displayName: '' };
+            const { pictureUrl, displayName } = userProfile;
+
+            // 检查用户资料是否正确获取
+            if (!displayName || !pictureUrl) {
+                console.error('Failed to fetch profile for user:', commentData.userId);
+            } else {
+                console.log('Fetched profile:', displayName, pictureUrl);  // 添加日志输出
+            }
+
+            const userInfoHtml = '<p><img src="' + pictureUrl + '" alt="User Avatar" class="avatar" /> <strong>' + displayName + '</strong> (' + commentData.userId + ')</p>';
+
+            // 时间元素
+            const timeElement = `<p style="margin-left: 55px; font-size: 12px;"><strong></strong> ${formattedTime}</p>`;
+
+            // 内容元素
+            const contentElement = `<p style="margin-left: 55px; font-size: 24px;"><strong></strong> ${commentData.content}</p>`;
+
+            let commentElement = '<div class="comment" style="border: 1px solid #ccc; background-color: #f5f5f5; margin-bottom: 10px; padding: 10px;" data-comment-id="' + doc.id + '">';
+            commentElement += userInfoHtml;
+            commentElement += timeElement;
+            commentElement += contentElement;
+
             if (commentData.userId === userId) {
-                <!-- // 构建修改按钮 -->
-                <!-- const editcommentButton = document.createElement('button'); -->
-                <!-- editcommentButton.textContent = '修改評論'; -->
-                
-                <!-- commentElement += editcommentButton.outerHTML; -->
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.style.display = 'flex';
+                buttonsContainer.style.alignItems = 'center';
 
-                <!-- // 构建删除按钮 -->
-                <!-- const deletecommentButton = document.createElement('button'); -->
-                <!-- deletecommentButton.textContent = '删除評論'; -->
-                
-                <!-- commentElement += deletecommentButton.outerHTML; -->
-				
-				// 构建按钮容器
-				const buttonsContainer = document.createElement('div');
-				buttonsContainer.style.display = 'flex'; // 设置容器为弹性布局
-				buttonsContainer.style.alignItems = 'center'; // 垂直居中对齐
+                const editCommentButton = document.createElement('button');
+                const icon3 = document.createElement('i');
+                icon3.className = 'fas fa-edit';
+                icon3.style.marginRight = '8px';
+                const textNode3 = document.createTextNode('修改評論');
+                editCommentButton.appendChild(icon3);
+                editCommentButton.appendChild(textNode3);
+                editCommentButton.style.backgroundColor = '#007bff';
+                buttonsContainer.appendChild(editCommentButton);
 
-				// 构建修改按钮
-				const editcommentButton = document.createElement('button');
-				//editcommentButton.textContent = '修改評論';
-				
-				const icon3 = document.createElement('i');
-				icon3.className = 'fas fa-edit'; // Font Awesome 图标类
-				icon3.style.marginRight = '8px'; // 设置图标右边距
-				
-				const textNode3 = document.createTextNode('修改評論');
-				editcommentButton.appendChild(icon3);
-				editcommentButton.appendChild(textNode3);
-				
-				editcommentButton.style.backgroundColor = '#007bff'; // 设置修改按钮的背景颜色
-				buttonsContainer.appendChild(editcommentButton);
+                const deleteCommentButton = document.createElement('button');
+                const icon4 = document.createElement('i');
+                icon4.className = 'fas fa-trash';
+                icon4.style.marginRight = '8px';
+                const textNode4 = document.createTextNode('删除評論');
+                deleteCommentButton.appendChild(icon4);
+                deleteCommentButton.appendChild(textNode4);
+                deleteCommentButton.style.backgroundColor = 'red';
+                deleteCommentButton.style.marginLeft = '10px';
+                buttonsContainer.appendChild(deleteCommentButton);
 
-				// 构建删除按钮
-				const deletecommentButton = document.createElement('button');
-				//deletecommentButton.textContent = '删除評論';
-				
-				const icon4 = document.createElement('i');
-				icon4.className = 'fas fa-trash'; // Font Awesome 图标类
-				icon4.style.marginRight = '8px'; // 设置图标右边距
-				
-				const textNode4 = document.createTextNode('删除評論');
-				deletecommentButton.appendChild(icon4);
-				deletecommentButton.appendChild(textNode4);
-				
-				deletecommentButton.style.backgroundColor = 'red'; // 设置删除按钮的背景颜色
-				deletecommentButton.style.marginLeft = '10px'; // 设置删除按钮与修改按钮之间的间距
-				buttonsContainer.appendChild(deletecommentButton);
-				
-				// 添加空白的 div 元素来创建间距
-				const spacer = document.createElement('div');
-				spacer.style.height = '80px'; // 设置空白元素的高度
-				buttonsContainer.appendChild(spacer);
-
-				// 将按钮容器添加到评论元素中
-				commentElement += buttonsContainer.outerHTML;
-
+                // 添加按钮到评论
+                commentElement += buttonsContainer.outerHTML;
             }
 
             commentElement += '</div>';
 
-            commentsContainer.innerHTML += commentElement;
-        });
+            commentsContainer.insertAdjacentHTML('beforeend', commentElement);
+        }
     } catch (error) {
         console.error('Error fetching comments:', error);
     }
@@ -1737,6 +1556,7 @@ function updateMessageContentAndTagsnewimage(messageRef, content, tags, editDial
 	
 	
 	
+
 	
   <div class="row">
     <div class="container">
@@ -1868,36 +1688,42 @@ function updateMessageContentAndTagsnewimage(messageRef, content, tags, editDial
     });
 </script>
     <script>
-        //const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 替????的 LINE 用? ID
+        const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; // 替????的 LINE 用? ID
+
+	   // const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+	const apiUrl = 'https://my-project-chenyihsiu.vercel.app';
 
         async function fetchUserProfile(userId) {
-            try {
-                const response = await fetch('/api/user-profile/' + encodeURIComponent(userId));
-                if (!response.ok) {
-                    throw new Error('Network response was not ok.');
-                }
-                return await response.json();
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                return null;
-            }
-        }
+	    try {
+	        const response = await fetch(apiUrl + '/api/user-profile/' + encodeURIComponent(userId));
+	        if (!response.ok) {
+	            throw new Error('Network response was not ok.');
+	        }
+	        return await response.json();
+	    } catch (error) {
+	        console.error('Error fetching user profile:', error);
+	        return null;
+	    }
+	}
 
-        async function updateUserInfo(userId) {
-            const userInfoElement = document.getElementById('user-info');
-            const userProfile = await fetchUserProfile(userId);
-            let content = '';
-            if (userProfile) {
-                const { pictureUrl, displayName } = userProfile;
-                content = '<img src="' + pictureUrl + '" alt="User Avatar" class="avatar" /> ' +
-                          '<strong>' + displayName + ' (' + userId + ')</strong>';
-            } else {
-                content = '<strong>Error fetching user info</strong>';
-            }
-            userInfoElement.innerHTML = content;
-        }
 
-        updateUserInfo(userId);
+
+	    function getTagsAsLinks(tags) {
+		    return tags.map(tag => `<a href="#" class="tag-link">${tag}</a>`).join(', ');
+		}
+		
+		function handleCommentSubmit(event, messageInfo, userId, db, commentContent) {
+		    // 处理评论提交的逻辑
+		    console.log('Comment submitted for message:', messageInfo.title, 'by user:', userId);
+		    // 示例代码：这里可以将评论保存到数据库
+		}
+		
+		// 点击标签过滤消息的示例函数
+		function filterMessagesByTag(tag) {
+		    console.log('Filtering messages by tag:', tag);
+		    // 示例代码：这里可以根据标签过滤消息
+}
     </script>
 
     <hr />  
