@@ -186,7 +186,7 @@
 					msgIDs.length = 0;
 
 					//const userId = document.getElementById("getProfileUserId").innerHTML;
-					const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+					//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 
 					firebase.firestore().collection('project').doc('cloth').collection('cloth').get()
 						.then((querySnapshot) => {
@@ -254,86 +254,12 @@
 				const messagesDiv = document.getElementById('messages');
 
 				// 提交表單時觸發
-			<!-- messageForm.addEventListener('submit', function(event) { -->
-				<!-- event.preventDefault(); -->
-				<!-- //const userId = document.getElementById("getProfileUserId").innerHTML; -->
-				<!-- const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34'; -->
-				<!-- const title = document.getElementById('titleInput').value; -->
-				<!-- const content = document.getElementById('contentInput').value; -->
-				<!-- const date = document.getElementById('dateInput').value; -->
-				
-				<!-- // 获取 Cloud Firestore 数据库引用 -->
-				<!-- const db = firebase.firestore(); -->
-
-				<!-- // 检查是否有相同的msgID -->
-				<!-- db.collection('project').doc('journal').collection('journal') -->
-					<!-- .where('title', '==', title) -->
-					<!-- .get() -->
-					<!-- .then((querySnapshot) => { -->
-						<!-- if (!querySnapshot.empty) { -->
-							<!-- alert('標題名稱重複！'); -->
-						<!-- } else { -->
-						
-							<!-- // 在按下儲存按鈕時，再將選擇的圖片ID一同儲存到Firebase -->
-							<!-- const data = { -->
-								<!-- line_id: userId, -->
-								<!-- title: title, -->
-								<!-- content: content, -->
-								<!-- date: date, -->
-								<!-- checkphotoIDs: checkphotoIDs, // 添加 checkphotoIDs -->
-								<!-- checkmsgIDs: checkmsgIDs, -->
-								<!-- airTemperature: airTemperature, -->
-								<!-- county: selectedCounty + '_' + selectedDistrict, // 將選擇的縣市和地區用下劃線連接起來 -->
-								<!-- // 其他字段... -->
-							<!-- }; -->
-
-							<!-- const docName = userId + '_' + title + '_' + date; -->
-							<!-- const docPath = 'project/journal/journal/' + docName; -->
-
-							<!-- db.doc(docPath).set(data) -->
-								<!-- .then(() => { -->
-									<!-- console.log('数据已成功保存到 Firestore 中！'); -->
-									<!-- alert('穿著札記已成功儲存！') -->
-									
-									<!-- const messageDiv = document.createElement('div'); -->
-									<!-- messageDiv.classList.add('message'); -->
-
-									<!-- const titleElement = document.createElement('h2'); -->
-									<!-- titleElement.textContent = title; -->
-
-									<!-- const contentElement = document.createElement('p'); -->
-									<!-- contentElement.textContent = content; -->
-
-									<!-- const dateElement = document.createElement('small'); -->
-									<!-- dateElement.textContent = date; -->
-
-									<!-- //messageDiv.appendChild(titleElement); -->
-									<!-- //messageDiv.appendChild(contentElement); -->
-									<!-- //messageDiv.appendChild(dateElement); -->
-
-									<!-- //messagesDiv.appendChild(messageDiv); -->
-
-									<!-- // 清除表单 -->
-									<!-- messageForm.reset(); -->
-
-									<!-- // 清空 checkphotoIDs，準備下一次儲存 -->
-									<!-- checkphotoIDs.length = 0; -->
-									<!-- checkmsgIDs.length = 0; -->
-								<!-- }) -->
-								<!-- .catch((error) => { -->
-									<!-- console.error('保存数据到 Firestore 时发生错误：', error); -->
-								<!-- }); -->
-						<!-- } -->
-					<!-- }) -->
-					<!-- .catch((error) => { -->
-						<!-- console.error('查询文档时发生错误：', error); -->
-					<!-- }); -->
-			<!-- }); -->
+			
 			// 提交表單時觸發
 			messageForm.addEventListener('submit', function(event) {
 				event.preventDefault();
 				//const userId = document.getElementById("getProfileUserId").innerHTML;
-				const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+				//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 				const title = document.getElementById('titleInput').value;
 				const content = document.getElementById('contentInput').value;
 				const date = document.getElementById('dateInput').value;
@@ -440,7 +366,7 @@
 				// 获取并显示日记数据
 					function displayJournals(userId) {
 						//const userId = document.getElementById("getProfileUserId").innerHTML;
-						const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+						//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 						const journalListDiv = document.getElementById('journalList');
 						let firstLoad = true; // 添加首次加载的标志位
 						
@@ -700,7 +626,7 @@
 				imageListDiv.innerHTML = '';
 				
 				//const userId = document.getElementById("getProfileUserId").innerHTML;
-				const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
+				//const userId = 'U0a49e765a241d21992c6d0a8f5fa4a34';
 
 				firebase.firestore().collection('project').doc('cloth').collection('cloth').get()
 					.then((querySnapshot) => {
