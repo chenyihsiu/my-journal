@@ -366,7 +366,8 @@
 
 				}
 				
-				
+				console.log('journalListDiv:', journalListDiv);
+
 				// 获取并显示日记数据
 					function displayJournals(userId) {
 						//const userId = document.getElementById("getProfileUserId").innerHTML;
@@ -396,6 +397,7 @@
 										// 创建一个用于显示日记的 div 元素
 										const journalDiv = document.createElement('div');
 										journalDiv.classList.add('journal-entry');
+										console.log('Journal div added to the document:', journalDiv);
 
 										const titleElement = document.createElement('h4');
 										titleElement.textContent = '標題: ' + journalData.title;
@@ -911,7 +913,12 @@
 		#confirmButton {
 		border-radius: 10px; /* 通过设置合适的像素值来调整圆角的大小 */
 		}
-		
+		.journal-entry {
+		    border: 1px solid black;
+		    margin: 10px;
+		    padding: 10px;
+		}
+
 		
 
 
